@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -20,8 +21,10 @@ public class Form extends JFrame
 {
 	private ImageContainer _containerF;
 	private ImageContainer _containerG;
+	private ImageContainer _containerSVBRDF;
 	private JScrollPane _scrollF;
 	private JScrollPane _scrollG;
+	private JScrollPane _scrollSVBRDF;
 	private JPanel _containerToolBox;
 	private JButton _btnLoad;
 	private JButton _btnProcess;
@@ -40,9 +43,15 @@ public class Form extends JFrame
 		//Initialisation
 		_containerF=new ImageContainer();	
 		_containerG=new ImageContainer();
+		_containerSVBRDF=new ImageContainer();
 		_containerToolBox=new JPanel();
 		_scrollF=new JScrollPane(_containerF);
 		_scrollG=new JScrollPane(_containerG);
+		_scrollSVBRDF=new JScrollPane(_containerSVBRDF);
+		_scrollF.setPreferredSize(new Dimension(400,400));
+		_scrollG.setPreferredSize(new Dimension(400,400));
+		_scrollSVBRDF.setPreferredSize(new Dimension(1000, 400));
+		
 		
 		_containerF.setBackground(Color.black);
 		_containerG.setBackground(Color.red);		
@@ -54,9 +63,7 @@ public class Form extends JFrame
 		_layoutToolBox.setHgap(5);
 		_layoutToolBox.preferredLayoutSize(_containerToolBox);
 		
-		_scrollF.setPreferredSize(new Dimension(400,600));
-		//_containerF.setPreferredSize(new Dimension(400,600));
-		//_containerG.setPreferredSize(new Dimension(400,600));		
+			
 		
 		_btnLoad=new JButton("Charger Photos");		
 		_btnProcess=new JButton("Générer SVBRDF");
@@ -66,9 +73,10 @@ public class Form extends JFrame
 		_containerToolBox.add(_btnLoad);
 		_containerToolBox.add(_btnProcess);
 		this.setLayout(_layout);		
-		getContentPane().add(_scrollF);
-		getContentPane().add(_scrollG);
-		getContentPane().add(_containerToolBox);	
+		this.add(_scrollF);
+		this.add(_scrollG);
+		this.add(_containerToolBox);	
+		this.add(_scrollSVBRDF);
 		
 		imageData=new BufferedImage[2];
 		//init event
@@ -157,9 +165,8 @@ public class Form extends JFrame
 			imageData[1]=ImageIO.read(imageFiles[1]);
 			_containerF.image=imageData[0];
 			_containerG.image=imageData[1];
-
-			_containerF.repaint();
-			_containerG.repaint();
+			_containerF.setIcon(new ImageIcon(imageData[0]));
+			_containerG.setIcon(new ImageIcon(imageData[1]));			
 			
 		} 
 		catch (IOException e) {
