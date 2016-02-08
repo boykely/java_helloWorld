@@ -9,6 +9,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -33,6 +34,15 @@ public class Form extends JFrame
 	private File[] imageFiles;
 	private BufferedImage[] imageData;
 	private boolean imageLoaded=false;
+	//image information
+	private int tileSize;
+	private int tileLenH;
+	private int tileLenW;
+	private int width;
+	private int height;
+	private BufferedImage[][] flashTiles;
+	private BufferedImage[][] guideTiles;
+	private Hashtable<String, int[]> flashIndex;
 	public Form()
 	{		
 		this.setSize(1000, 900);
@@ -81,6 +91,9 @@ public class Form extends JFrame
 		imageData=new BufferedImage[2];
 		//init event
 		initEvent();
+		//
+		flashIndex=new Hashtable<>();
+				
 	}
 	private void initEvent()
 	{
@@ -157,8 +170,7 @@ public class Form extends JFrame
 		FileDialog dlg=new FileDialog(this, "Choisier images",FileDialog.LOAD);
 		dlg.setMultipleMode(true);
 		dlg.setVisible(true);
-		imageFiles=dlg.getFiles();
-		if(imageFiles.length==2)imageLoaded=!imageLoaded;
+		imageFiles=dlg.getFiles();		
 		try 
 		{
 			imageData[0]=ImageIO.read(imageFiles[0]);
@@ -166,8 +178,16 @@ public class Form extends JFrame
 			_containerF.image=imageData[0];
 			_containerG.image=imageData[1];
 			_containerF.setIcon(new ImageIcon(imageData[0]));
-			_containerG.setIcon(new ImageIcon(imageData[1]));			
-			
+			_containerG.setIcon(new ImageIcon(imageData[1]));
+			//init image information
+	        width=imageData[0].getWidth();
+	        height=imageData[0].getHeight();
+	        tileLenW = width / 197;
+	        tileLenH = height / 197;
+	        tileSize=197;
+	        flashTiles=new BufferedImage[tileLenH][tileLenW];
+	        guideTiles=new BufferedImage[tileLenH][tileLenW];
+			if(imageFiles.length==2)imageLoaded=!imageLoaded;			
 		} 
 		catch (IOException e) {
 			// TODO: handle exception
@@ -179,7 +199,67 @@ public class Form extends JFrame
 	}
 	private void computeSVBRDF()
 	{
-		
+		initTiles();
+		System.out.println("Compute");
 	}
-	
+	private void initTiles()
+	{
+		int i = 0;
+        int j = 0;
+        int k = 0;
+        int z = 0;
+        int compte=0;
+        int x=0;
+        int y=0;
+        int c;
+        Color cc;
+        for (int ligne = 0; ligne <height; ligne++)
+        {
+            if (ligne % tileSize == 0 && i<tileLenH)
+            {
+                if (flashTiles[i][ j] == null)
+                {
+                    flashTiles[i][ j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
+                    guideTiles[i][ j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
+                    flashIndex.put(i+"-"+j, new int[]{ligne,compte});
+                    z = j;
+                    k = i;                                     
+                }
+                y=0;   
+            }
+            x=0;
+            for (int colonne = 0; colonne < width; colonne++)
+            {
+            	compte=colonne;
+                if (colonne % tileSize == 0 && j < tileLenW && i<tileLenH)
+                {                        
+                    if (flashTiles[i][j] == null)
+                    {
+                        flashTiles[i][j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
+                        guideTiles[i][j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
+                        flashIndex.put(i+"-"+j, new int[]{ligne,compte});
+                        k = i;
+                        z = j;                        
+                    }
+                    j++;
+                    x=0;
+                }
+                System.out.println(ligne+"-"+colonne);
+                c=imageData[0].getRGB(colonne,ligne);
+                System.out.println(c);
+                cc=new Color(c);
+                System.out.println("("+ligne+","+colonne+")="+cc.getRed()+"/"+cc.getGreen()+"/"+cc.getBlue());
+                //System.out.println("Tile:("+(colonne-197*z)+","+(ligne-197*z)+")");
+                System.out.println("Tile:("+y+","+x+")");
+                //flashTiles[k][z].setRGB(x, y, c);
+                x++;
+                //System.out.println(k+"/"+z);
+                
+            }
+            j = 0;
+            i++;
+            y++;
+            x=0;
+        }
+	}
 }
