@@ -202,7 +202,7 @@ public class Form extends JFrame
 		initTiles();
 		System.out.println("Compute");
 	}
-	private void initTiles()
+	/*private void initTiles()
 	{
 		int i = 0;
         int j = 0;
@@ -261,5 +261,34 @@ public class Form extends JFrame
             y++;
             x=0;
         }
+	}*/
+	private void initTiles()
+	{
+		int rgb;
+		int rgb_;
+		//ligne
+		for(int i=0;i<tileLenH;i++)
+		{			
+			//colonne
+			for(int j=0;j<tileLenW;j++)
+			{
+				//System.out.println(i+"-"+j);
+				flashTiles[i][j]=new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_INT_ARGB);
+				guideTiles[i][j]=new BufferedImage(tileSize,tileSize,BufferedImage.TYPE_INT_ARGB);
+				//ligne
+				for(int s=0;s<tileSize;s++)
+				{
+					//colonne
+					for(int t=0;t<tileSize;t++)
+					{
+						//System.out.println("x="+(t+(197*j))+"/y="+ (s+(197*i)));
+						rgb=imageData[0].getRGB(t+tileSize*j, s+tileSize*i);
+						rgb_=imageData[1].getRGB(t+tileSize*j, s+tileSize*i);
+						flashTiles[i][j].setRGB(t, s, rgb);
+						guideTiles[i][j].setRGB(t, s, rgb_);
+					}					
+				}				
+			}						
+		}		
 	}
 }
