@@ -3,20 +3,27 @@ import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.Date;
+import java.util.Random;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+
 import javax.imageio.ImageIO;
+
 
 public class Form extends JFrame 
 {
@@ -32,6 +39,7 @@ public class Form extends JFrame
 	private FlowLayout _layout;
 	private GridLayout _layoutToolBox;
 	private File[] imageFiles;
+	//les variables BufferedImage sont utilisé pour l'affichage seulement
 	private BufferedImage[] imageData;
 	private boolean imageLoaded=false;
 	//image information
@@ -42,7 +50,11 @@ public class Form extends JFrame
 	private int height;
 	private BufferedImage[][] flashTiles;
 	private BufferedImage[][] guideTiles;
-	private Hashtable<String, int[]> flashIndex;
+	//variable pour le traitement opencv
+	private Mat[][] flashTilesCV;
+	private Mat[][] guideTilesCV;
+	private Mat[] imageDataCV;
+	private Thread[] listThread;
 	public Form()
 	{		
 		this.setSize(1000, 900);
@@ -64,7 +76,7 @@ public class Form extends JFrame
 		
 		
 		_containerF.setBackground(Color.black);
-		_containerG.setBackground(Color.red);		
+		_containerG.setBackground(Color.red);
 		
 		
 		_layout=new FlowLayout();
@@ -89,10 +101,11 @@ public class Form extends JFrame
 		this.add(_scrollSVBRDF);
 		
 		imageData=new BufferedImage[2];
+		imageDataCV=new Mat[2];
 		//init event
 		initEvent();
 		//
-		flashIndex=new Hashtable<>();
+		
 				
 	}
 	private void initEvent()
@@ -175,6 +188,10 @@ public class Form extends JFrame
 		{
 			imageData[0]=ImageIO.read(imageFiles[0]);
 			imageData[1]=ImageIO.read(imageFiles[1]);
+			System.out.println("Flash image:"+imageFiles[0].getAbsolutePath());
+			System.out.println("Guide image:"+imageFiles[1].getAbsolutePath());
+			imageDataCV[0]=Highgui.imread(imageFiles[0].getAbsolutePath());
+			imageDataCV[1]=Highgui.imread(imageFiles[1].getAbsolutePath());
 			_containerF.image=imageData[0];
 			_containerG.image=imageData[1];
 			_containerF.setIcon(new ImageIcon(imageData[0]));
@@ -187,7 +204,10 @@ public class Form extends JFrame
 	        tileSize=197;
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
-			if(imageFiles.length==2)imageLoaded=!imageLoaded;			
+	        flashTilesCV=new Mat[tileLenH][tileLenW];
+	        guideTilesCV=new Mat[tileLenH][tileLenW];	        
+			if(imageFiles.length==2)imageLoaded=!imageLoaded;
+			initTiles();			
 		} 
 		catch (IOException e) {
 			// TODO: handle exception
@@ -199,73 +219,16 @@ public class Form extends JFrame
 	}
 	private void computeSVBRDF()
 	{
-		initTiles();
-		System.out.println("Compute");
-	}
-	/*private void initTiles()
-	{
-		int i = 0;
-        int j = 0;
-        int k = 0;
-        int z = 0;
-        int compte=0;
-        int x=0;
-        int y=0;
-        int c;
-        Color cc;
-        for (int ligne = 0; ligne <height; ligne++)
-        {
-            if (ligne % tileSize == 0 && i<tileLenH)
-            {
-                if (flashTiles[i][ j] == null)
-                {
-                    flashTiles[i][ j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
-                    guideTiles[i][ j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
-                    flashIndex.put(i+"-"+j, new int[]{ligne,compte});
-                    z = j;
-                    k = i;                                     
-                }
-                y=0;   
-            }
-            x=0;
-            for (int colonne = 0; colonne < width; colonne++)
-            {
-            	compte=colonne;
-                if (colonne % tileSize == 0 && j < tileLenW && i<tileLenH)
-                {                        
-                    if (flashTiles[i][j] == null)
-                    {
-                        flashTiles[i][j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
-                        guideTiles[i][j] = new BufferedImage(tileSize, tileSize,BufferedImage.TYPE_INT_ARGB);
-                        flashIndex.put(i+"-"+j, new int[]{ligne,compte});
-                        k = i;
-                        z = j;                        
-                    }
-                    j++;
-                    x=0;
-                }
-                System.out.println(ligne+"-"+colonne);
-                c=imageData[0].getRGB(colonne,ligne);
-                System.out.println(c);
-                cc=new Color(c);
-                System.out.println("("+ligne+","+colonne+")="+cc.getRed()+"/"+cc.getGreen()+"/"+cc.getBlue());
-                //System.out.println("Tile:("+(colonne-197*z)+","+(ligne-197*z)+")");
-                System.out.println("Tile:("+y+","+x+")");
-                //flashTiles[k][z].setRGB(x, y, c);
-                x++;
-                //System.out.println(k+"/"+z);
-                
-            }
-            j = 0;
-            i++;
-            y++;
-            x=0;
-        }
-	}*/
+		System.out.println("Compute start");
+		reflectanceSampleTransport();
+		System.out.println("Compute end");
+	}	
 	private void initTiles()
 	{
 		int rgb;
 		int rgb_;
+		double[] dd;
+		double[] dd_;
 		//ligne
 		for(int i=0;i<tileLenH;i++)
 		{			
@@ -273,8 +236,10 @@ public class Form extends JFrame
 			for(int j=0;j<tileLenW;j++)
 			{
 				//System.out.println(i+"-"+j);
-				flashTiles[i][j]=new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_INT_ARGB);
-				guideTiles[i][j]=new BufferedImage(tileSize,tileSize,BufferedImage.TYPE_INT_ARGB);
+				flashTiles[i][j]=new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_3BYTE_BGR);
+				guideTiles[i][j]=new BufferedImage(tileSize,tileSize,BufferedImage.TYPE_3BYTE_BGR);
+				flashTilesCV[i][j]=new Mat(tileSize,tileSize,CvType.CV_8UC3);
+				guideTilesCV[i][j]=new Mat(tileSize,tileSize,CvType.CV_8UC3);
 				//ligne
 				for(int s=0;s<tileSize;s++)
 				{
@@ -286,9 +251,51 @@ public class Form extends JFrame
 						rgb_=imageData[1].getRGB(t+tileSize*j, s+tileSize*i);
 						flashTiles[i][j].setRGB(t, s, rgb);
 						guideTiles[i][j].setRGB(t, s, rgb_);
+						dd=imageDataCV[0].get(s, t);	
+						dd_=imageDataCV[1].get(s,t);
+						flashTilesCV[i][j].put(s, t, dd);
+						guideTilesCV[i][j].put(s, t, dd_);
 					}					
 				}				
-			}						
-		}		
+			}
+			if(i==3)this.showCvDataToJava(flashTilesCV[i][4],_containerSVBRDF);
+		}
+		System.out.println("Initialisation des tiles terminé");
+		listThread=new Thread[tileLenH*tileLenW];
+		System.out.println("Initialisation des threads terminé");
+	}
+	private void reflectanceSampleTransport()
+	{
+		Date d=new Date();
+		Random rd=new Random(d.getTime());
+		int ml=rd.nextInt(tileLenH);
+		int mc=rd.nextInt(tileLenW);
+		BufferedImage masterTile=flashTiles[ml][mc];
+		int k=0;
+		//ligne
+		for(int i=0;i<tileLenH;i++)
+		{
+			//colonne
+			for(int j=0;j<tileLenW;j++)
+			{
+				BriefDescriptor brief=new BriefDescriptor(i,j,33);
+				brief.setMaster(masterTile);
+				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+				listThread[k]=new Thread(brief);
+				listThread[k].start();
+				k++;
+			}
+		}
+	}
+	private void showCvDataToJava(Mat m,ImageContainer container)
+	{
+		int type=BufferedImage.TYPE_3BYTE_BGR;
+		int bufferSize=m.channels()*m.cols()*m.rows();
+		byte[] data=new byte[bufferSize];
+		m.get(0, 0, data);
+		container.image=new BufferedImage(m.cols(), m.rows(), type);
+		final byte[] containerPixels=((DataBufferByte)container.image.getRaster().getDataBuffer()).getData();
+		System.arraycopy(data, 0, containerPixels, 0, bufferSize);
+		container.setIcon(new ImageIcon(container.image));
 	}
 }
