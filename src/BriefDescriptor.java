@@ -1,5 +1,8 @@
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -15,18 +18,21 @@ public class BriefDescriptor implements Runnable
 	private int i;
 	private int j;
 	private int window;
+	private List _listeners;
+	
 	@Override
 	public void run() 
 	{
 		// TODO Auto-generated method stub
 		gaussianTiles(sourceFCV);
-		System.out.println("Tile ("+i+","+j+") est terminé");
+		oneTileFinished(i,j);
 	}
 	public BriefDescriptor(int i_,int j_,int window_)
 	{
 		i=i_;
 		j=j_;
 		window=window_;
+		_listeners=new ArrayList<>();
 	}
 	public void setMaster(BufferedImage m)
 	{
@@ -45,6 +51,19 @@ public class BriefDescriptor implements Runnable
 	private void gaussianTiles(Mat m)
 	{
 		Imgproc.GaussianBlur(m, m, new Size(15.0, 15.0), 4);
+	}
+	private void oneTileFinished(int i_,int j_)
+	{
+		BriefDescriptorEvent evt = new BriefDescriptorEvent( this,i_,j_);
+        Iterator listeners = _listeners.iterator();
+        while( listeners.hasNext() ) 
+        {
+            ( (BriefDescriptorListener) listeners.next() ).oneTileProcessed(evt);
+        }
+	}
+	public synchronized void AddBriefDescriptorEventListener(BriefDescriptorListener lst)
+	{
+		_listeners.add(lst);
 	}
 
 }

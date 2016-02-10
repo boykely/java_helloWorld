@@ -27,7 +27,7 @@ import org.opencv.imgproc.Imgproc;
 import javax.imageio.ImageIO;
 
 
-public class Form extends JFrame 
+public class Form extends JFrame implements BriefDescriptorListener
 {
 	private ImageContainer _containerF;
 	private ImageContainer _containerG;
@@ -65,6 +65,7 @@ public class Form extends JFrame
 	private int next=0;
 	private int previous=0;
 	private int nnn=0;
+	public static int tileProcessed=0;
 	public Form()
 	{		
 		this.setSize(1000, 900);
@@ -188,33 +189,8 @@ public class Form extends JFrame
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// TODO Auto-generated method stub
-				int count=1;
-				for(int i=0;i<listThread.length;i++)
-				{
-					try
-					{
-						if(listThread[i].isAlive())
-						{
-							listThread[i].join();
-							count++;
-						}
-					}
-					catch(Exception ee)
-					{
-						System.out.println("mouse clicked thread join:"+ee.getMessage());
-					}
-					
-				}				
-				if(count!=listThread.length)
-				{
-					//computeSVBRDF();
-					System.out.println("Tous les thread dans listThread ne sont pas encore terminé");
-					return;
-				}
-				System.out.println("Reflectance sample Transport terminé");
-				//pour test images
-				
+				// TODO Auto-generated method stub				
+				if(Form.tileProcessed!=tileLenH*tileLenW)return;			
 				if(next<tileLenW)
 				{
 					//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
@@ -310,23 +286,16 @@ public class Form extends JFrame
 					//colonne
 					for(int t=0;t<tileSize;t++)
 					{
-						//System.out.println("x="+(t+(197*j))+"/y="+ (s+(197*i)));
 						rgb=imageData[0].getRGB(t+tileSize*j, s+tileSize*i);
 						rgb_=imageData[1].getRGB(t+tileSize*j, s+tileSize*i);
 						flashTiles[i][j].setRGB(t, s, rgb);
-						guideTiles[i][j].setRGB(t, s, rgb_);
-						//ceci ne marche pas.je ne sais pas encore
-						/*dd=imageDataCV[0].get(t+tileSize*j, s+tileSize*i);	
-						dd_=imageDataCV[1].get(t+tileSize*j,s+tileSize*i);						
-						flashTilesCV[i][j].put(s, t, dd);
-						guideTilesCV[i][j].put(s, t, dd_);*/
+						guideTiles[i][j].setRGB(t, s, rgb_);						
 					}					
 				}				
-			}
-			//if(i==4)this.showCvDataToJava(flashTilesCV[4][5],_containerSVBRDF);
-			if(i==4)this.showTile(flashTiles[4][5],_containerSVBRDF);
+			}			
 		}
-		Mat temp;
+		//init tiles for modification
+		Mat temp;		
 		for(int i=0;i<tileLenH;i++)
 		{
 			for(int j=0;j<tileLenW;j++)
@@ -348,6 +317,7 @@ public class Form extends JFrame
 		int ml=rd.nextInt(tileLenH);
 		int mc=rd.nextInt(tileLenW);
 		BufferedImage masterTile=flashTiles[ml][mc];
+		this.showTile(masterTile,_containerSVBRDF);
 		int k=0;
 		//ligne
 		for(int i=0;i<tileLenH;i++)
@@ -359,6 +329,7 @@ public class Form extends JFrame
 				brief.setMaster(masterTile);
 				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
 				brief.setSourceFGCV(flashTilesCV[i][j], guideTilesCV[i][j]);
+				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
 				listThread[k]=new Thread(brief);
 				listThread[k].start();
 				k++;
@@ -387,5 +358,12 @@ public class Form extends JFrame
 		byte[] data=((DataBufferByte)im.getRaster().getDataBuffer()).getData();
 		m.put(0, 0, data);
 		return m;
+	}
+	@Override
+	public void oneTileProcessed(BriefDescriptorEvent evt) 
+	{
+		// TODO Auto-generated method stub
+		System.out.println("One tile a été traité:("+evt.getLigne()+"-"+evt.getColonne()+")");
+		Form.tileProcessed++;
 	}	
 }
