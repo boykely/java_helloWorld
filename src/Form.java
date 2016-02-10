@@ -195,8 +195,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 				{
 					//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
 					System.out.println(nnn+"-"+next);
-					showTile(flashTiles[nnn][next], _containerNext);					
-					showCvDataToJava(flashTilesCV[nnn][next], _containerNextCV);
+					showTile(guideTiles[nnn][next], _containerNext);					
+					showCvDataToJava(guideTilesCV[nnn][next], _containerNextCV);
 					next++;
 				}
 				else
@@ -207,8 +207,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 						next=0;
 						//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
 						System.out.println(nnn+"-"+next);
-						showTile(flashTiles[nnn][next], _containerNext);						
-						showCvDataToJava(flashTilesCV[nnn][next], _containerNextCV);
+						showTile(guideTiles[nnn][next], _containerNext);						
+						showCvDataToJava(guideTilesCV[nnn][next], _containerNextCV);
 					}
 					else{
 						next=0;nnn=0;
@@ -295,13 +295,16 @@ public class Form extends JFrame implements BriefDescriptorListener
 			}			
 		}
 		//init tiles for modification
-		Mat temp;		
+		Mat temp;
+		Mat tempG;
 		for(int i=0;i<tileLenH;i++)
 		{
 			for(int j=0;j<tileLenW;j++)
 			{
-				temp=convertTileToCV(flashTiles[i][j]);				
+				temp=convertTileToCV(flashTiles[i][j]);
+				tempG=convertTileToCV(guideTiles[i][j]);
 				flashTilesCV[i][j]=temp;
+				guideTilesCV[i][j]=tempG;
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");

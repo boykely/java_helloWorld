@@ -24,7 +24,7 @@ public class BriefDescriptor implements Runnable
 	public void run() 
 	{
 		// TODO Auto-generated method stub
-		gaussianTiles(sourceFCV);
+		gaussianTiles(sourceGCV);
 		oneTileFinished(i,j);
 	}
 	public BriefDescriptor(int i_,int j_,int window_)
