@@ -20,8 +20,9 @@ import javax.swing.JScrollPane;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 
@@ -188,10 +189,30 @@ public class Form extends JFrame
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// TODO Auto-generated method stub
-				if(imageLoaded)
+				int count=1;
+				for(int i=0;i<listThread.length;i++)
+				{
+					try
+					{
+						if(listThread[i].isAlive())
+						{
+							listThread[i].join();
+							count++;
+						}
+					}
+					catch(Exception ee)
+					{
+						System.out.println("mouse clicked thread join:"+ee.getMessage());
+					}
+					
+				}				
+				if(count!=listThread.length)
 				{
 					//computeSVBRDF();
+					System.out.println("Tous les thread dans listThread ne sont pas encore terminé");
+					return;
 				}
+				System.out.println("Reflectance sample Transport terminé");
 				//pour test images
 				
 				if(next<tileLenW)
@@ -249,8 +270,7 @@ public class Form extends JFrame
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
-	        guideTilesCV=new Mat[tileLenH][tileLenW];	        
-			if(imageFiles.length==2)imageLoaded=!imageLoaded;
+	        guideTilesCV=new Mat[tileLenH][tileLenW];			
 			initTiles();			
 		} 
 		catch (IOException e) {
@@ -311,13 +331,15 @@ public class Form extends JFrame
 		{
 			for(int j=0;j<tileLenW;j++)
 			{
-				temp=convertTileToCV(flashTiles[i][j]);
+				temp=convertTileToCV(flashTiles[i][j]);				
 				flashTilesCV[i][j]=temp;
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
 		listThread=new Thread[tileLenH*tileLenW];
 		System.out.println("Initialisation des threads terminé");
+		System.out.println("Reflectance Sample Transport commence...");
+		reflectanceSampleTransport();
 	}
 	private void reflectanceSampleTransport()
 	{
@@ -336,6 +358,7 @@ public class Form extends JFrame
 				BriefDescriptor brief=new BriefDescriptor(i,j,33);
 				brief.setMaster(masterTile);
 				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+				brief.setSourceFGCV(flashTilesCV[i][j], guideTilesCV[i][j]);
 				listThread[k]=new Thread(brief);
 				listThread[k].start();
 				k++;
@@ -364,5 +387,5 @@ public class Form extends JFrame
 		byte[] data=((DataBufferByte)im.getRaster().getDataBuffer()).getData();
 		m.put(0, 0, data);
 		return m;
-	}
+	}	
 }
