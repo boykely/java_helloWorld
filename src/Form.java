@@ -320,8 +320,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int ml=rd.nextInt(tileLenH);
 		int mc=rd.nextInt(tileLenW);
 		BufferedImage masterTile=flashTiles[ml][mc];
+		Mat masterTileCV=convertTileToCV(masterTile);
+		BriefDescriptor.gaussianTiles(masterTileCV);
 		this.showTile(masterTile,_containerSVBRDF);
 		int k=0;
+		//Pour chaque tile (i,j)
 		//ligne
 		for(int i=0;i<tileLenH;i++)
 		{
@@ -330,6 +333,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			{
 				BriefDescriptor brief=new BriefDescriptor(i,j,33);
 				brief.setMaster(masterTile);
+				brief.setMasterCV(masterTileCV);
 				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
 				brief.setSourceFGCV(flashTilesCV[i][j], guideTilesCV[i][j]);
 				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
