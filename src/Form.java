@@ -240,9 +240,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//init image information
 	        width=imageData[0].getWidth();
 	        height=imageData[0].getHeight();
-	        tileLenW = width / 197;
-	        tileLenH = height / 197;
-	        tileSize=197;
+	        tileLenW = width / 192;
+	        tileLenH = height / 192;
+	        tileSize=192;
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
@@ -331,7 +331,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//colonne
 			for(int j=0;j<tileLenW;j++)
 			{
-				BriefDescriptor brief=new BriefDescriptor(i,j,33);
+				BriefDescriptor brief=new BriefDescriptor(i,j,96,33);
 				brief.setMaster(masterTile);
 				brief.setMasterCV(masterTileCV);
 				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);

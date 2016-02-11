@@ -8,7 +8,7 @@ public class Gaussian
 	 * */
 	public static int[] Gaussian(double mu,double std,Random rd)
 	{		
-		return new int[]{convertDoubleToInt(rd.nextGaussian()*std+mu),convertDoubleToInt(rd.nextGaussian()*std+mu)};
+		return new int[]{convertDoubleToInt(rd.nextGaussian()*std+mu),convertDoubleToInt(rd.nextGaussian()*std+mu),convertDoubleToInt(rd.nextGaussian()*std+mu),convertDoubleToInt(rd.nextGaussian()*std+mu)};
 	}
 	public static int convertDoubleToInt(double x)
 	{
