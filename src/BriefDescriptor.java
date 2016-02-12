@@ -15,6 +15,10 @@ import org.opencv.imgproc.Imgproc;
 
 public class BriefDescriptor implements Runnable 
 {
+	public enum TypeBrieff
+	{
+		type_96,type_128,type_32;
+	}
 	/*
 	 * We must not forget that accessing image from JNI array
 	 * takes more time that Java array
@@ -33,8 +37,8 @@ public class BriefDescriptor implements Runnable
 	private Mat newsourceFCV;//this will hold the new tile F1
 	private int i;
 	private int j;
-	private int n;
-	private int window;
+	private int[] n;
+	private int[] window;
 	private List _listeners;
 	private String[] allBriefG;
 	private Hashtable<Object, int[]> allBriefGDict;
@@ -43,8 +47,8 @@ public class BriefDescriptor implements Runnable
 	public void run() 
 	{
 		// TODO Auto-generated method stub
-		//gaussianTiles(sourceGCV);
-		//gaussianTiles(masterTileGCV);
+		gaussianTiles(sourceGCV);		
+		gaussianTiles(masterTileGCV);
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
@@ -55,10 +59,10 @@ public class BriefDescriptor implements Runnable
 	}
 	public BriefDescriptor(int i_,int j_,int n_,int window_)
 	{
-		n=n_;
+		n=new int[]{96,128,32};
 		i=i_;
 		j=j_;
-		window=window_;
+		window=new int[]{33,17,5};
 		_listeners=new ArrayList<>();
 		allBriefGDict=new Hashtable<>();
 	}
@@ -120,7 +124,7 @@ public class BriefDescriptor implements Runnable
 		String[] masterB=new String[m.cols()*m.rows()];
 		//for each pixel (s,t) in master tile => find brief(master_tile,s,t)=brief(source_tile,s',t')
 		int index=0;
-		int hamming=n;//n-erreur
+		int hamming=n[0];//n-erreur
 		int tempHaming=hamming;
 		int id=0;
 		for(int i_=0;i_<m.rows();i_++)
@@ -131,7 +135,7 @@ public class BriefDescriptor implements Runnable
 				//System.out.println(brief(m, i_, j_));
 				masterB[index]=brief(m, i_, j_);
 				//now we have to look for best matches brief inside allBriefG
-				for(int br=0;br<n;br++)
+				for(int br=0;br<n[0];br++)
 				{
 					tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());
 					//System.out.println(tempHaming);
@@ -153,7 +157,7 @@ public class BriefDescriptor implements Runnable
 				newsourceFCV.put(i_, j_, colorF);
 				index++;
 				//reset
-				hamming=n;
+				hamming=n[0];
 				id=0;
 			}
 		}
@@ -165,7 +169,7 @@ public class BriefDescriptor implements Runnable
 	{
 		int[][] npair=new int[n][];
 		int l=0;
-		double std=(double)window/5;
+		double std=(double)window[0]/5;
 		Date dt=new Date();		
 		Random rd=new Random(dt.getTime());
 		while(l<n)
@@ -182,15 +186,21 @@ public class BriefDescriptor implements Runnable
 	//Pixel (s,t) => notation (ligne,colonne)
 	private String brief(Mat tile,int s,int t)
 	{
-		int[][] pairsPixel=nPairPixel(n);
+		return featureDescriptor(tile, s, t, n[0],window[0])+featureDescriptor(tile, s, t, n[1],window[1])+featureDescriptor(tile, s, t, n[2],window[2]);	
+	}	
+	
+	private String featureDescriptor(Mat tile,int s,int t,int n_,int w_)
+	{
+		StringBuilder sommeS=new StringBuilder();
+		int[][] pairsPixel=nPairPixel(n_);
 		byte[] dataPixel=new byte[3];
 		byte[] dataXPixel=new byte[3];
 		byte[] dataYPixel=new byte[3];
 		tile.get(s, t,dataPixel);		
 		//we will compute the brief
 		double somme=0;
-		StringBuilder sommeS=new StringBuilder();
-		for(int k=0;k<n;k++)
+		
+		for(int k=0;k<n_;k++)
 		{			
 			//pixel x
 			int lx=pairsPixel[k][0];
@@ -230,6 +240,6 @@ public class BriefDescriptor implements Runnable
 			}
 		}
 		return sommeS.toString();
-	}	
+	}
 
 }
