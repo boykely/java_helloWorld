@@ -2,6 +2,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -18,10 +20,13 @@ public class BriefDescriptor implements Runnable
 	 * takes more time that Java array
 	 * Cf OpenCV 3.0 Computer Vision with Java
 	 */
+	public ImageContainer container_ref_final;//on va utiliser ceci pour l'affichage après traitement du 
+	public ImageContainer container_ref_init;
 	private BufferedImage sourceF;
 	private BufferedImage sourceG;
 	private BufferedImage master;
-	private Mat masterCV;
+	private Mat masterTileFCV;
+	private Mat masterTileGCV;
 	private Mat sourceFCV;
 	private Mat sourceGCV;//this is the reference to current tile within F
 	private Mat newsourceGCV;//this will hold the new tile F1
@@ -31,15 +36,19 @@ public class BriefDescriptor implements Runnable
 	private int window;
 	private List _listeners;
 	private String[] allBriefG;
+	private Hashtable<Object, int[]> allBriefGDict;
 	
 	@Override
 	public void run() 
 	{
 		// TODO Auto-generated method stub
 		gaussianTiles(sourceGCV);
+		gaussianTiles(masterTileGCV);
 		allBriefG=brief(sourceGCV);
-		brief(masterCV,true);
+		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
+		Form.showCvDataToJava(sourceGCV, container_ref_final);
+		Form.showTile(sourceG, container_ref_init);
 	}
 	public BriefDescriptor(int i_,int j_,int n_,int window_)
 	{
@@ -47,15 +56,17 @@ public class BriefDescriptor implements Runnable
 		i=i_;
 		j=j_;
 		window=window_;
-		_listeners=new ArrayList<>();		
+		_listeners=new ArrayList<>();
+		allBriefGDict=new Hashtable<>();
 	}
 	public void setMaster(BufferedImage m)
 	{
 		master=m;
 	}
-	public void setMasterCV(Mat m)
+	public void setMasterCV(Mat m,Mat m2)
 	{
-		masterCV=m;
+		masterTileFCV=m;
+		masterTileGCV=m2;
 	}
 	public void setSourceFG(BufferedImage f,BufferedImage g)
 	{
@@ -88,14 +99,14 @@ public class BriefDescriptor implements Runnable
 	private String[] brief(Mat m)
 	{
 		allBriefG=new String[m.cols()*m.rows()];
-		//for each pixel (s,t) in master tile => find brief(master_tile,s,t)=brief(source_tile,s',t')
 		int index=0;
 		for(int i_=0;i_<m.rows();i_++)
 		{
 			for(int j_=0;j_<m.cols();j_++)
-			{
-				//System.out.println(brief(m, i_, j_));
+			{				
 				allBriefG[index]=brief(m, i_, j_);
+				allBriefGDict.put(index, new int[]{i_,j_});				
+				//System.out.println(allBriefG[index]);
 				index++;
 			}
 		}
@@ -106,13 +117,33 @@ public class BriefDescriptor implements Runnable
 		String[] masterB=new String[m.cols()*m.rows()];
 		//for each pixel (s,t) in master tile => find brief(master_tile,s,t)=brief(source_tile,s',t')
 		int index=0;
+		int hamming=n;//n-erreur
+		int tempHaming=hamming;
+		int id=0;
 		for(int i_=0;i_<m.rows();i_++)
 		{
 			for(int j_=0;j_<m.cols();j_++)
 			{
+				//m.put(i_, j_, new byte[]{40,25,43});
 				//System.out.println(brief(m, i_, j_));
 				masterB[index]=brief(m, i_, j_);
 				//now we have to look for best matches brief inside allBriefG
+				if(i_==0 && j_==0)
+				{
+					for(int br=0;br<n;br++)
+					{
+						tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());
+						System.out.println(tempHaming);
+						if(hamming>tempHaming)
+						{
+							hamming=tempHaming;
+							id=br;
+						}
+					}
+					System.out.println("le distance minimum est "+hamming);				
+					int[] match=allBriefGDict.get(id);
+					System.out.println("Le pixel correspondant est ("+match[0]+","+match[1]+")");
+				}				
 				index++;
 			}
 		}
@@ -135,6 +166,7 @@ public class BriefDescriptor implements Runnable
 		return npair;
 	}
 	//Here we calculate the brief descriptor at one pixel
+	//this returns a bit string
 	//Pixel (s,t) => notation (ligne,colonne)
 	private String brief(Mat tile,int s,int t)
 	{

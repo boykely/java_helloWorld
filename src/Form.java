@@ -320,9 +320,10 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int ml=rd.nextInt(tileLenH);
 		int mc=rd.nextInt(tileLenW);
 		BufferedImage masterTile=flashTiles[ml][mc];
-		Mat masterTileCV=convertTileToCV(masterTile);
-		BriefDescriptor.gaussianTiles(masterTileCV);
-		this.showTile(masterTile,_containerSVBRDF);
+		//we will create new matrice image to manipulate inside each thread
+		Mat masterTileFCV=convertTileToCV(masterTile);
+		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);		
+		showTile(masterTile,_containerSVBRDF);
 		int k=0;
 		//Pour chaque tile (i,j)
 		//ligne
@@ -331,19 +332,27 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//colonne
 			for(int j=0;j<tileLenW;j++)
 			{
-				BriefDescriptor brief=new BriefDescriptor(i,j,96,33);
-				brief.setMaster(masterTile);
-				brief.setMasterCV(masterTileCV);
-				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
-				brief.setSourceFGCV(flashTilesCV[i][j], guideTilesCV[i][j]);
-				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
-				listThread[k]=new Thread(brief);
-				listThread[k].start();
-				k++;
+				//on va d'abord tester pour tile (0,0)
+				if(i==0 && j==0)
+				{					
+					BriefDescriptor brief=new BriefDescriptor(i,j,96,33);
+					brief.container_ref_final=_containerNextCV;
+					brief.container_ref_init=_containerNext;
+					brief.setMaster(masterTile);
+					brief.setMasterCV(masterTileFCV,masterTileGCV);
+					brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+					brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
+					brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+					listThread[k]=new Thread(brief);
+					listThread[k].start();
+					k++;
+				}
+				
+				
 			}
 		}
 	}
-	private void showCvDataToJava(Mat m,ImageContainer container)
+	public static void showCvDataToJava(Mat m,ImageContainer container)
 	{
 		int type=BufferedImage.TYPE_3BYTE_BGR;
 		int bufferSize=m.channels()*m.cols()*m.rows();
@@ -354,12 +363,12 @@ public class Form extends JFrame implements BriefDescriptorListener
 		System.arraycopy(data, 0, containerPixels, 0, bufferSize);
 		container.setIcon(new ImageIcon(container.image));
 	}
-	private void showTile(BufferedImage im,ImageContainer container)
+	public static void showTile(BufferedImage im,ImageContainer container)
 	{
 		container.image=im;
 		container.setIcon(new ImageIcon(container.image));
 	}
-	private Mat convertTileToCV(BufferedImage im)
+	public static Mat convertTileToCV(BufferedImage im)
 	{
 		Mat m=new Mat(im.getHeight(), im.getWidth(), CvType.CV_8UC3);
 		byte[] data=((DataBufferByte)im.getRaster().getDataBuffer()).getData();

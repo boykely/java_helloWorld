@@ -18,4 +18,21 @@ public class Gaussian
 		if((reste-0.5)<=0.00001)return a;
 		else return a+1;
 	}
+	public static int distanceHamming(byte[] a,byte[] b)
+	{
+		int lengthA=a.length;
+		if(lengthA!=b.length)
+		{
+			System.out.println("Il y a eu erreur lors de calcule de la distance de Hamming");
+			return -1;
+		}
+		int res=0;
+		byte xor;
+		for(int i=0;i<lengthA;i++)
+		{
+			xor=(byte)(a[i]^b[i]);
+			if(xor==1)res++;			
+		}
+		return res;
+	}
 }
