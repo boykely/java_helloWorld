@@ -57,6 +57,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private BufferedImage[][] flashTiles;
 	private BufferedImage[][] guideTiles;
 	//variable pour le traitement opencv
+	private Mat[][] newFlashTilesCV;//it will contains the reference of F1
 	private Mat[][] flashTilesCV;
 	private Mat[][] guideTilesCV;
 	private Mat[] imageDataCV;
@@ -81,6 +82,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 		_containerNextCV=new ImageContainer();
 		_containerToolBox=new JPanel();
 		_scrollF=new JScrollPane(_containerF);
+		
 		_scrollG=new JScrollPane(_containerG);
 		_scrollSVBRDF=new JScrollPane(_containerSVBRDF);
 		_scrollNext=new JScrollPane(_containerNext);
@@ -195,8 +197,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 				{
 					//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
 					System.out.println(nnn+"-"+next);
-					showTile(guideTiles[nnn][next], _containerNext);					
-					showCvDataToJava(guideTilesCV[nnn][next], _containerNextCV);
+					showTile(flashTiles[nnn][next], _containerNext);					
+					showCvDataToJava(newFlashTilesCV[nnn][next], _containerNextCV);
 					next++;
 				}
 				else
@@ -207,8 +209,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 						next=0;
 						//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
 						System.out.println(nnn+"-"+next);
-						showTile(guideTiles[nnn][next], _containerNext);						
-						showCvDataToJava(guideTilesCV[nnn][next], _containerNextCV);
+						showTile(flashTiles[nnn][next], _containerNext);						
+						showCvDataToJava(newFlashTilesCV[nnn][next], _containerNextCV);
 					}
 					else{
 						next=0;nnn=0;
@@ -235,6 +237,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			System.out.println(imageDataCV[1]);
 			_containerF.image=imageData[0];
 			_containerG.image=imageData[1];
+			
 			_containerF.setIcon(new ImageIcon(imageData[0]));
 			_containerG.setIcon(new ImageIcon(imageData[1]));
 			//init image information
@@ -246,7 +249,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
-	        guideTilesCV=new Mat[tileLenH][tileLenW];			
+	        guideTilesCV=new Mat[tileLenH][tileLenW];
+	        newFlashTilesCV=new Mat[tileLenH][tileLenW];	      
 			initTiles();			
 		} 
 		catch (IOException e) {
@@ -331,13 +335,13 @@ public class Form extends JFrame implements BriefDescriptorListener
 		{
 			//colonne
 			for(int j=0;j<tileLenW;j++)
-			{
-				//on va d'abord tester pour tile (0,0)
-				if(i==0 && j==0)
-				{					
-					BriefDescriptor brief=new BriefDescriptor(i,j,96,33);
+			{			
+				if(i==4 && j==4)
+				{
+					BriefDescriptor brief=new BriefDescriptor(i,j,32,5);
 					brief.container_ref_final=_containerNextCV;
 					brief.container_ref_init=_containerNext;
+					brief.newflashTilesCV=newFlashTilesCV;
 					brief.setMaster(masterTile);
 					brief.setMasterCV(masterTileFCV,masterTileGCV);
 					brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
@@ -347,8 +351,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 					listThread[k].start();
 					k++;
 				}
-				
-				
+								
 			}
 		}
 	}

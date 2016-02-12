@@ -25,11 +25,12 @@ public class BriefDescriptor implements Runnable
 	private BufferedImage sourceF;
 	private BufferedImage sourceG;
 	private BufferedImage master;
+	public Mat[][] newflashTilesCV;
 	private Mat masterTileFCV;
 	private Mat masterTileGCV;
 	private Mat sourceFCV;
 	private Mat sourceGCV;//this is the reference to current tile within F
-	private Mat newsourceGCV;//this will hold the new tile F1
+	private Mat newsourceFCV;//this will hold the new tile F1
 	private int i;
 	private int j;
 	private int n;
@@ -42,13 +43,15 @@ public class BriefDescriptor implements Runnable
 	public void run() 
 	{
 		// TODO Auto-generated method stub
-		gaussianTiles(sourceGCV);
-		gaussianTiles(masterTileGCV);
+		//gaussianTiles(sourceGCV);
+		//gaussianTiles(masterTileGCV);
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
-		Form.showCvDataToJava(sourceGCV, container_ref_final);
-		Form.showTile(sourceG, container_ref_init);
+		//Form.showTile(sourceG, container_ref_init);
+		Form.showCvDataToJava(sourceFCV, container_ref_init);
+		Form.showCvDataToJava(newsourceFCV, container_ref_final);
+		
 	}
 	public BriefDescriptor(int i_,int j_,int n_,int window_)
 	{
@@ -77,8 +80,8 @@ public class BriefDescriptor implements Runnable
 	{
 		sourceFCV=f;
 		sourceGCV=g;
-		newsourceGCV=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
-	}
+		newsourceFCV=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
+	}	
 	public static void gaussianTiles(Mat m)
 	{
 		Imgproc.GaussianBlur(m, m, new Size(15.0, 15.0), 4);
@@ -128,25 +131,34 @@ public class BriefDescriptor implements Runnable
 				//System.out.println(brief(m, i_, j_));
 				masterB[index]=brief(m, i_, j_);
 				//now we have to look for best matches brief inside allBriefG
-				if(i_==0 && j_==0)
+				for(int br=0;br<n;br++)
 				{
-					for(int br=0;br<n;br++)
+					tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());
+					//System.out.println(tempHaming);
+					if(hamming>tempHaming)
 					{
-						tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());
-						System.out.println(tempHaming);
-						if(hamming>tempHaming)
-						{
-							hamming=tempHaming;
-							id=br;
-						}
+						hamming=tempHaming;
+						id=br;
 					}
-					System.out.println("le distance minimum est "+hamming);				
-					int[] match=allBriefGDict.get(id);
-					System.out.println("Le pixel correspondant est ("+match[0]+","+match[1]+")");
-				}				
+				}
+				//System.out.println("le distance minimum est "+hamming);				
+				int[] match=allBriefGDict.get(id);
+				//System.out.println("Le pixel correspondant est ("+match[0]+","+match[1]+")");
+				byte[] colorF=new byte[3];
+				
+				sourceFCV.get(match[0], match[1], colorF);//this is the pixel where brief best matches the master brief
+				
+				//System.err.println(colorF[0]+"/"+colorF[1]+"/"+colorF[2]);
+				//newsourceFCV.put(match[0], match[1], colorF);
+				newsourceFCV.put(i_, j_, colorF);
 				index++;
+				//reset
+				hamming=n;
+				id=0;
 			}
 		}
+		newflashTilesCV[i][j]=newsourceFCV;
+		//System.out.println(newsourceFCV);
 		return new String[2];		
 	}
 	private int[][] nPairPixel(int n)
