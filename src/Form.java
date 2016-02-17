@@ -34,11 +34,15 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private ImageContainer _containerSVBRDF;
 	private ImageContainer _containerNext;
 	private ImageContainer _containerNextCV;
+	private ImageContainer _containerGradientF;
+	private ImageContainer _containerGradient;
 	private JScrollPane _scrollF;
 	private JScrollPane _scrollG;
 	private JScrollPane _scrollSVBRDF;
 	private JScrollPane _scrollNext;
 	private JScrollPane _scrollNextCV;
+	private JScrollPane _scrollGradientF;
+	private JScrollPane _scrollGradient;
 	private JPanel _containerToolBox;
 	private JButton _btnLoad;
 	private JButton _btnProcess;
@@ -80,18 +84,23 @@ public class Form extends JFrame implements BriefDescriptorListener
 		_containerSVBRDF=new ImageContainer();
 		_containerNext=new ImageContainer();
 		_containerNextCV=new ImageContainer();
+		_containerGradient=new ImageContainer();
+		_containerGradientF=new ImageContainer();
 		_containerToolBox=new JPanel();
-		_scrollF=new JScrollPane(_containerF);
 		
+		_scrollF=new JScrollPane(_containerF);		
 		_scrollG=new JScrollPane(_containerG);
 		_scrollSVBRDF=new JScrollPane(_containerSVBRDF);
 		_scrollNext=new JScrollPane(_containerNext);
 		_scrollNextCV=new JScrollPane(_containerNextCV);
+		_scrollGradient=new JScrollPane(_containerGradient);
+		_scrollGradientF=new JScrollPane(_containerGradientF);
 		_scrollF.setPreferredSize(new Dimension(400,400));
 		_scrollG.setPreferredSize(new Dimension(400,400));
 		_scrollSVBRDF.setPreferredSize(new Dimension(197, 197));
 		_scrollNext.setPreferredSize(new Dimension(197, 197));
 		_scrollNextCV.setPreferredSize(new Dimension(197, 197));
+		_scrollGradient.setPreferredSize(new Dimension(197,197));
 		
 		
 		_containerF.setBackground(Color.black);
@@ -120,6 +129,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 		this.add(_scrollSVBRDF);
 		this.add(_scrollNext);
 		this.add(_scrollNextCV);
+		this.add(_scrollGradientF);
+		this.add(_scrollGradient);
 		
 		imageData=new BufferedImage[2];
 		imageDataCV=new Mat[2];
@@ -341,6 +352,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 					BriefDescriptor brief=new BriefDescriptor(i,j,32,5);
 					brief.container_ref_final=_containerNextCV;
 					brief.container_ref_init=_containerNext;
+					brief.container_ref_gradient=_containerGradient;
+					brief.container_ref_gradientF=_containerGradientF;
 					brief.newflashTilesCV=newFlashTilesCV;
 					brief.setMaster(masterTile);
 					brief.setMasterCV(masterTileFCV,masterTileGCV);

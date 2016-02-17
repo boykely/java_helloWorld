@@ -27,6 +27,8 @@ public class BriefDescriptor implements Runnable
 	 */
 	public ImageContainer container_ref_final;//on va utiliser ceci pour l'affichage après traitement du 
 	public ImageContainer container_ref_init;
+	public ImageContainer container_ref_gradient;
+	public ImageContainer container_ref_gradientF;
 	private BufferedImage sourceF;
 	private BufferedImage sourceG;
 	private BufferedImage master;
@@ -36,6 +38,8 @@ public class BriefDescriptor implements Runnable
 	private Mat sourceFCV;
 	private Mat sourceGCV;//this is the reference to current tile within F
 	private Mat newsourceFCV;//this will hold the new tile F1
+	private Mat gradient;//this will hold the gradient image of source tile
+	private Mat gradientF;
 	private int i;
 	private int j;
 	private int[] n;
@@ -55,14 +59,19 @@ public class BriefDescriptor implements Runnable
 		pairwisePixel0=nPairPixel(n[0], 0);
 		pairwisePixel1=nPairPixel(n[1], 1);
 		pairwisePixel2=nPairPixel(n[2], 2);
-		gaussianTiles(sourceGCV);		
-		gaussianTiles(masterTileGCV);
+		gaussianTiles(sourceGCV,15.0,4);		
+		gaussianTiles(masterTileGCV,15.0,4);
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
 		Form.showCvDataToJava(sourceFCV, container_ref_init);
-		Form.showCvDataToJava(newsourceFCV, container_ref_final);
+		gaussianTiles(newsourceFCV,3.0,2);
+		Form.showCvDataToJava(newsourceFCV, container_ref_final);		
+		Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
+		Form.showCvDataToJava(gradient, container_ref_gradient);
+		Imgproc.Sobel(sourceFCV, gradientF, sourceFCV.depth(), 0, 1);
+		Form.showCvDataToJava(gradientF, container_ref_gradientF);
 		
 	}
 	public BriefDescriptor(int i_,int j_,int n_,int window_)
@@ -93,11 +102,13 @@ public class BriefDescriptor implements Runnable
 		sourceFCV=f;
 		sourceGCV=g;
 		newsourceFCV=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
+		gradient=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
+		gradientF=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
 	}	
-	public static void gaussianTiles(Mat m)
+	public static void gaussianTiles(Mat m,double size,double sigmaX)
 	{
 		//Mat newM=new Mat(m.rows(),m.cols(),CvType.CV_8UC3);
-		Imgproc.GaussianBlur(m, m, new Size(15.0, 15.0), 4);
+		Imgproc.GaussianBlur(m, m, new Size(size, size), sigmaX);
 		//return newM;
 	}
 	private void oneTileFinished(int i_,int j_)
