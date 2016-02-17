@@ -40,6 +40,7 @@ public class BriefDescriptor implements Runnable
 	private Mat newsourceFCV;//this will hold the new tile F1
 	private Mat gradient;//this will hold the gradient image of source tile
 	private Mat gradientF;
+	private int tileSize;
 	private int i;
 	private int j;
 	private int[] n;
@@ -66,7 +67,7 @@ public class BriefDescriptor implements Runnable
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
 		Form.showCvDataToJava(sourceFCV, container_ref_init);
-		gaussianTiles(newsourceFCV,3.0,2);
+		gaussianTiles(newsourceFCV,3.0,1);
 		Form.showCvDataToJava(newsourceFCV, container_ref_final);		
 		Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
 		Form.showCvDataToJava(gradient, container_ref_gradient);
@@ -74,11 +75,12 @@ public class BriefDescriptor implements Runnable
 		Form.showCvDataToJava(gradientF, container_ref_gradientF);
 		
 	}
-	public BriefDescriptor(int i_,int j_,int n_,int window_)
+	public BriefDescriptor(int i_,int j_,int n_,int window_,int size)
 	{
 		n=new int[]{96,128,32};
 		i=i_;
 		j=j_;
+		tileSize=size;
 		window=new int[]{33,17,5};
 		_listeners=new ArrayList<>();
 		allBriefGDict=new Hashtable<>();
@@ -151,7 +153,7 @@ public class BriefDescriptor implements Runnable
 		int hamming=max;
 		int tempHaming=hamming;
 		int id=0;
-		int nbPixels=100*100;
+		int nbPixels=tileSize*tileSize;
 		
 		for( int i_=0;i_<m.rows();i_++)
 		{

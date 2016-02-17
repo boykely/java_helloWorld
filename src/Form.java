@@ -349,7 +349,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			{			
 				if(i==4 && j==4)
 				{
-					BriefDescriptor brief=new BriefDescriptor(i,j,32,5);
+					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 					brief.container_ref_final=_containerNextCV;
 					brief.container_ref_init=_containerNext;
 					brief.container_ref_gradient=_containerGradient;
