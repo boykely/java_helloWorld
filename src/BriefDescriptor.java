@@ -1,6 +1,9 @@
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.awt.image.ImageFilter;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,6 +11,9 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -67,12 +73,19 @@ public class BriefDescriptor implements Runnable
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
 		Form.showCvDataToJava(sourceFCV, container_ref_init);
-		gaussianTiles(newsourceFCV,3.0,1);
-		Form.showCvDataToJava(newsourceFCV, container_ref_final);		
-		Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
-		Form.showCvDataToJava(gradient, container_ref_gradient);
-		Imgproc.Sobel(sourceFCV, gradientF, sourceFCV.depth(), 0, 1);
-		Form.showCvDataToJava(gradientF, container_ref_gradientF);
+		//gaussianTiles(newsourceFCV,3.0,1);
+		Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
+		Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
+		newflashTilesCV[i][j]=nn;
+		saveTile(nn,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
+		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
+		//Form.showCvDataToJava(nn, container_ref_final);
+		//Form.showCvDataToJava(newsourceFCV, container_ref_final);		
+		//Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
+		//Form.showCvDataToJava(gradient, container_ref_gradient);
+		//Imgproc.Sobel(sourceFCV, gradientF, sourceFCV.depth(), 0, 1);
+		//Form.showCvDataToJava(gradientF, container_ref_gradientF);
+		
 		
 	}
 	public BriefDescriptor(int i_,int j_,int n_,int window_,int size)
@@ -186,12 +199,12 @@ public class BriefDescriptor implements Runnable
 				//reset
 				hamming=max;
 				id=0;
-				System.out.println("Pixel ("+i_+","+j_+") du master traité");
+				//System.out.println("Pixel ("+i_+","+j_+") du master traité");
 				
 			}			
 		}
-		System.err.println("Tous les pixel ont été tratié");
-		newflashTilesCV[i][j]=newsourceFCV;
+		System.out.println("Tous les pixel ont été tratié");
+		//newflashTilesCV[i][j]=newsourceFCV;
 		//System.out.println(newsourceFCV);
 		return new String[2];		
 	}
@@ -272,6 +285,25 @@ public class BriefDescriptor implements Runnable
 			}
 		}
 		return sommeS.toString();
+	}
+	public static void saveTile(Mat m,String path)
+	{
+		try
+		{				
+			int type=BufferedImage.TYPE_3BYTE_BGR;
+			int bufferSize=m.channels()*m.cols()*m.rows();
+			byte[] data=new byte[bufferSize];
+			m.get(0, 0, data);
+			BufferedImage image=new BufferedImage(m.cols(), m.rows(), type);
+			final byte[] containerPixels=((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+			System.arraycopy(data, 0, containerPixels, 0, bufferSize);		
+			//save image		
+			ImageIO.write(image, "jpg", new File(path));			
+		}
+		catch(IOException e)
+		{
+			
+		}		
 	}
 
 }

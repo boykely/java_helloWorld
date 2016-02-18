@@ -203,7 +203,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// TODO Auto-generated method stub				
-				if(Form.tileProcessed!=tileLenH*tileLenW)return;			
+				/*if(Form.tileProcessed!=tileLenH*tileLenW)return;			
 				if(next<tileLenW)
 				{
 					//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
@@ -226,7 +226,41 @@ public class Form extends JFrame implements BriefDescriptorListener
 					else{
 						next=0;nnn=0;
 					}
+				}*/
+				/*if(Form.tileProcessed!=1)return;			
+				if(next<tileLenW)
+				{
+					//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
+					System.out.println(nnn+"-"+next);
+					if(newFlashTilesCV[nnn][next]!=null)
+					{
+						
+						showTile(flashTiles[nnn][next], _containerNext);					
+						showCvDataToJava(newFlashTilesCV[nnn][next], _containerNextCV);
+					}
+					
+					next++;
 				}
+				else
+				{
+					nnn++;
+					if(nnn<tileLenH)
+					{
+						next=0;
+						//showCvDataToJava(flashTilesCV[nnn][next],_containerNext);
+						System.out.println(nnn+"-"+next);
+						if(newFlashTilesCV[nnn][next]!=null)
+						{
+							
+							showTile(flashTiles[nnn][next], _containerNext);						
+							showCvDataToJava(newFlashTilesCV[nnn][next], _containerNextCV);
+						}
+						
+					}
+					else{
+						next=0;nnn=0;
+					}
+				}*/
 			}
 		});
 	}
@@ -254,9 +288,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//init image information
 	        width=imageData[0].getWidth();
 	        height=imageData[0].getHeight();
-	        tileLenW = width / 192;//pour un test on va retrecir
-	        tileLenH = height / 192;
 	        tileSize=192;
+	        tileLenW = width / tileSize;//pour un test on va retrecir
+	        tileLenH = height / tileSize;	        
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
@@ -324,6 +358,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 		}
 		System.out.println("Initialisation des tiles terminé");
 		listThread=new Thread[tileLenH*tileLenW];
+		//listThread=new Thread[1];
 		System.out.println("Initialisation des threads terminé");
 		System.out.println("Reflectance Sample Transport commence...");
 		reflectanceSampleTransport();
@@ -337,7 +372,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 		BufferedImage masterTile=flashTiles[ml][mc];
 		//we will create new matrice image to manipulate inside each thread
 		Mat masterTileFCV=convertTileToCV(masterTile);
-		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);		
+		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);	
+		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
 		showTile(masterTile,_containerSVBRDF);
 		int k=0;
 		//Pour chaque tile (i,j)
@@ -347,23 +383,24 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//colonne
 			for(int j=0;j<tileLenW;j++)
 			{			
-				if(i==4 && j==4)
+				if((i==4 && j==4))//|| (i==3 && j==2) || (i==5 && j==5))
 				{
-					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
-					brief.container_ref_final=_containerNextCV;
-					brief.container_ref_init=_containerNext;
-					brief.container_ref_gradient=_containerGradient;
-					brief.container_ref_gradientF=_containerGradientF;
-					brief.newflashTilesCV=newFlashTilesCV;
-					brief.setMaster(masterTile);
-					brief.setMasterCV(masterTileFCV,masterTileGCV);
-					brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
-					brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
-					brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
-					listThread[k]=new Thread(brief);
-					listThread[k].start();
-					k++;
+					
 				}
+				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+				brief.container_ref_final=_containerNextCV;
+				brief.container_ref_init=_containerNext;
+				brief.container_ref_gradient=_containerGradient;
+				brief.container_ref_gradientF=_containerGradientF;
+				brief.newflashTilesCV=newFlashTilesCV;
+				brief.setMaster(masterTile);
+				brief.setMasterCV(masterTileFCV,masterTileGCV);
+				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
+				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+				listThread[k]=new Thread(brief);
+				listThread[k].start();
+				k++;
 								
 			}
 		}
@@ -395,7 +432,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 	public void oneTileProcessed(BriefDescriptorEvent evt) 
 	{
 		// TODO Auto-generated method stub
-		System.out.println("One tile a été traité:("+evt.getLigne()+"-"+evt.getColonne()+")");
+		System.err.println("One tile a été traité:("+evt.getLigne()+"-"+evt.getColonne()+")");
 		Form.tileProcessed++;
 	}	
 }
