@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
@@ -14,6 +15,7 @@ import java.util.Random;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -58,6 +60,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private int tileLenW;
 	private int width;
 	private int height;
+	private int[][] pairwisePixel0;
+	private int[][] pairwisePixel1;
+	private int[][] pairwisePixel2;
 	private BufferedImage[][] flashTiles;
 	private BufferedImage[][] guideTiles;
 	//variable pour le traitement opencv
@@ -137,7 +142,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		//init event
 		initEvent();
 		//
-		
+		//init pairwise pixel
+		pairwisePixel0=BriefDescriptor.nPairPixel(96, 33);
+		pairwisePixel1=BriefDescriptor.nPairPixel(128, 17);
+		pairwisePixel2=BriefDescriptor.nPairPixel(32, 5);
+		//
 				
 	}
 	private void initEvent()
@@ -304,6 +313,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 		}
 		catch(Exception e){
 			System.out.println("Select images:"+e.getMessage());
+			JDialog exp=new JDialog(this, "Exception erreur",true);
+			exp.setVisible(true);
 		}
 	}
 	private void computeSVBRDF()
@@ -354,11 +365,14 @@ public class Form extends JFrame implements BriefDescriptorListener
 				tempG=convertTileToCV(guideTiles[i][j]);
 				flashTilesCV[i][j]=temp;
 				guideTilesCV[i][j]=tempG;
+				//Calcule en avance les tableaux de Brief pour chaque Tile
+				
+				//
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
-		listThread=new Thread[tileLenH*tileLenW];
-		//listThread=new Thread[1];
+		//listThread=new Thread[tileLenH*tileLenW];
+		listThread=new Thread[3];
 		System.out.println("Initialisation des threads terminé");
 		System.out.println("Reflectance Sample Transport commence...");
 		reflectanceSampleTransport();
@@ -375,7 +389,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);	
 		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
 		showTile(masterTile,_containerSVBRDF);
-		int k=0;
+		int k=0;		
 		//Pour chaque tile (i,j)
 		//ligne
 		for(int i=0;i<tileLenH;i++)
@@ -383,24 +397,26 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//colonne
 			for(int j=0;j<tileLenW;j++)
 			{			
-				if((i==4 && j==4))//|| (i==3 && j==2) || (i==5 && j==5))
+				if((i==4 && j==4)|| (i==3 && j==2) || (i==5 && j==5))
 				{
-					
-				}
-				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
-				brief.container_ref_final=_containerNextCV;
-				brief.container_ref_init=_containerNext;
-				brief.container_ref_gradient=_containerGradient;
-				brief.container_ref_gradientF=_containerGradientF;
-				brief.newflashTilesCV=newFlashTilesCV;
-				brief.setMaster(masterTile);
-				brief.setMasterCV(masterTileFCV,masterTileGCV);
-				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
-				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
-				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
-				listThread[k]=new Thread(brief);
-				listThread[k].start();
-				k++;
+					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+					brief.pairwisePixel0=pairwisePixel0;
+					brief.pairwisePixel1=pairwisePixel1;
+					brief.pairwisePixel2=pairwisePixel2;
+					brief.container_ref_final=_containerNextCV;
+					brief.container_ref_init=_containerNext;
+					brief.container_ref_gradient=_containerGradient;
+					brief.container_ref_gradientF=_containerGradientF;
+					brief.newflashTilesCV=newFlashTilesCV;
+					brief.setMaster(masterTile);
+					brief.setMasterCV(masterTileFCV,masterTileGCV);
+					brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+					brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
+					brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+					listThread[k]=new Thread(brief);
+					listThread[k].start();
+					k++;
+				}		
 								
 			}
 		}

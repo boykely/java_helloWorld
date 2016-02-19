@@ -51,9 +51,9 @@ public class BriefDescriptor implements Runnable
 	private int j;
 	private int[] n;
 	private int[] window;
-	private int[][] pairwisePixel0;
-	private int[][] pairwisePixel1;
-	private int[][] pairwisePixel2;
+	public int[][] pairwisePixel0;
+	public int[][] pairwisePixel1;
+	public int[][] pairwisePixel2;
 	private List _listeners;
 	private String[] allBriefG;
 	private Hashtable<Object, int[]> allBriefGDict;
@@ -62,10 +62,10 @@ public class BriefDescriptor implements Runnable
 	public void run() 
 	{
 		// TODO Auto-generated method stub	
-		//initialize pairwise pixel
-		pairwisePixel0=nPairPixel(n[0], 0);
+		//initialize pairwise pixel => this is now initialized in Form.java once for all
+		/*pairwisePixel0=nPairPixel(n[0], 0);
 		pairwisePixel1=nPairPixel(n[1], 1);
-		pairwisePixel2=nPairPixel(n[2], 2);
+		pairwisePixel2=nPairPixel(n[2], 2);*/
 		gaussianTiles(sourceGCV,15.0,4);		
 		gaussianTiles(masterTileGCV,15.0,4);
 		allBriefG=brief(sourceGCV);
@@ -73,11 +73,11 @@ public class BriefDescriptor implements Runnable
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
 		Form.showCvDataToJava(sourceFCV, container_ref_init);
-		//gaussianTiles(newsourceFCV,3.0,1);
-		Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
-		Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
-		newflashTilesCV[i][j]=nn;
-		saveTile(nn,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
+		gaussianTiles(newsourceFCV,3.0,1);
+		//Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
+		//Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
+		newflashTilesCV[i][j]=newsourceFCV;
+		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
 		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
 		//Form.showCvDataToJava(nn, container_ref_final);
 		//Form.showCvDataToJava(newsourceFCV, container_ref_final);		
@@ -154,7 +154,7 @@ public class BriefDescriptor implements Runnable
 				index++;
 			}
 		}
-		System.out.println(index);
+		//System.out.println(index);
 		return allBriefG;
 	}	
 	private String[] brief(Mat m,boolean test)
@@ -208,11 +208,12 @@ public class BriefDescriptor implements Runnable
 		//System.out.println(newsourceFCV);
 		return new String[2];		
 	}
-	private int[][] nPairPixel(int n,int id)
+	public static int[][] nPairPixel(int n,int len)
 	{
 		int[][] npair=new int[n][];
 		int l=0;
-		double std=(double)window[id]/5;
+		//double std=(double)window[id]/5;
+		double std=(double)len/5;
 		Date dt=new Date();		
 		Random rd=new Random(dt.getTime());
 		while(l<n)
