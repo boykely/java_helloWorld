@@ -11,6 +11,7 @@ import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Random;
 
 import javax.swing.ImageIcon;
@@ -63,6 +64,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private int[][] pairwisePixel0;
 	private int[][] pairwisePixel1;
 	private int[][] pairwisePixel2;
+	private String[] masterB;
+	private Hashtable<Object, int[]> masterBDict;
 	private BufferedImage[][] flashTiles;
 	private BufferedImage[][] guideTiles;
 	//variable pour le traitement opencv
@@ -357,6 +360,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 		//init tiles for modification
 		Mat temp;
 		Mat tempG;
+		int index=0;
 		for(int i=0;i<tileLenH;i++)
 		{
 			for(int j=0;j<tileLenW;j++)
@@ -365,9 +369,6 @@ public class Form extends JFrame implements BriefDescriptorListener
 				tempG=convertTileToCV(guideTiles[i][j]);
 				flashTilesCV[i][j]=temp;
 				guideTilesCV[i][j]=tempG;
-				//Calcule en avance les tableaux de Brief pour chaque Tile
-				
-				//
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
@@ -388,6 +389,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		Mat masterTileFCV=convertTileToCV(masterTile);
 		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);	
 		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
+		//calcul une bonne fois pour toute masterB
+		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
+		masterBDict=new Hashtable<>();
+		BriefDescriptor.brief(masterTileGCV, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
+		//
 		showTile(masterTile,_containerSVBRDF);
 		int k=0;		
 		//Pour chaque tile (i,j)
@@ -403,6 +409,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 					brief.pairwisePixel0=pairwisePixel0;
 					brief.pairwisePixel1=pairwisePixel1;
 					brief.pairwisePixel2=pairwisePixel2;
+					brief.masterB=masterB;
+					brief.masterBDict=masterBDict;
 					brief.container_ref_final=_containerNextCV;
 					brief.container_ref_init=_containerNext;
 					brief.container_ref_gradient=_containerGradient;

@@ -55,8 +55,11 @@ public class BriefDescriptor implements Runnable
 	public int[][] pairwisePixel1;
 	public int[][] pairwisePixel2;
 	private List _listeners;
-	private String[] allBriefG;
-	private Hashtable<Object, int[]> allBriefGDict;
+	public String[] allBriefG;
+	public Hashtable<Object, int[]> allBriefGDict;
+	public String[] masterB;
+	public Hashtable<Object, int[]> masterBDict;
+	
 	
 	@Override
 	public void run() 
@@ -66,8 +69,8 @@ public class BriefDescriptor implements Runnable
 		/*pairwisePixel0=nPairPixel(n[0], 0);
 		pairwisePixel1=nPairPixel(n[1], 1);
 		pairwisePixel2=nPairPixel(n[2], 2);*/
-		gaussianTiles(sourceGCV,15.0,4);		
-		gaussianTiles(masterTileGCV,15.0,4);
+		gaussianTiles(sourceGCV,5.0,4);		
+		gaussianTiles(masterTileGCV,5.0,4);
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
@@ -156,10 +159,28 @@ public class BriefDescriptor implements Runnable
 		}
 		//System.out.println(index);
 		return allBriefG;
-	}	
+	}
+	public static void brief(Mat m,String[] allBG,Hashtable<Object, int[]> allBGDict,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
+	{
+		//allBG=new String[m.cols()*m.rows()];
+		//allBGDict=new Hashtable<>();
+		int index=0;
+		for(int i_=0;i_<m.rows();i_++)
+		{
+			for(int j_=0;j_<m.cols();j_++)
+			{				
+				allBG[index]=brief(m, i_, j_,new int[]{96,128,32},pairwise0,pairwise1,pairwise2);
+				//System.err.println(allBriefG[index]);
+				allBGDict.put(index, new int[]{i_,j_});				
+				//System.out.println(allBriefG[index]);
+				index++;
+			}
+		}
+		System.out.println("1 tile a été calculé en brief");
+	}
 	private String[] brief(Mat m,boolean test)
 	{
-		String[] masterB=new String[m.cols()*m.rows()];
+		//String[] masterB=new String[m.cols()*m.rows()];
 		//for each pixel (s,t) in master tile => find brief(master_tile,s,t)=brief(source_tile,s',t')
 		int index=0;
 		int max=n[0]+n[1]+n[2];//n-erreur
@@ -174,7 +195,7 @@ public class BriefDescriptor implements Runnable
 			{
 				//m.put(i_, j_, new byte[]{40,25,43});
 				//System.out.println(brief(m, i_, j_));
-				masterB[index]=brief(m, i_, j_);
+				//masterB[index]=brief(m, i_, j_);//on doit calculer en avance
 				//now we have to look for best matches brief inside allBriefG
 				
 				for(int br=0;br<nbPixels;br++)
@@ -199,7 +220,7 @@ public class BriefDescriptor implements Runnable
 				//reset
 				hamming=max;
 				id=0;
-				//System.out.println("Pixel ("+i_+","+j_+") du master traité");
+				System.out.println("Pixel ("+i_+","+j_+") du master traité");
 				
 			}			
 		}
@@ -230,10 +251,14 @@ public class BriefDescriptor implements Runnable
 	//Pixel (s,t) => notation (ligne,colonne)
 	public String brief(Mat tile,int s,int t)
 	{
-		return featureDescriptor(tile, s, t, n[0],window[0],0,pairwisePixel0)+featureDescriptor(tile, s, t, n[1],window[1],1,pairwisePixel1)+featureDescriptor(tile, s, t, n[2],window[2],2,pairwisePixel2);	
+		return featureDescriptor(tile, s, t, n[0],pairwisePixel0)+featureDescriptor(tile, s, t, n[1],pairwisePixel1)+featureDescriptor(tile, s, t, n[2],pairwisePixel2);	
 	}	
+	public static String brief(Mat tile,int s,int t,int[] len,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
+	{
+		return featureDescriptor(tile, s, t, len[0],pairwise0)+featureDescriptor(tile, s, t, len[1],pairwise1)+featureDescriptor(tile, s, t, len[2],pairwise2);
+	}
 	
-	private String featureDescriptor(Mat tile,int s,int t,int n_,int w_,int id,int[][]pairsPixel)
+	public static String featureDescriptor(Mat tile,int s,int t,int n_,int[][]pairsPixel)
 	{
 		StringBuilder sommeS=new StringBuilder();
 		//int[][] pairsPixel=nPairPixel(n_,id);
@@ -242,7 +267,7 @@ public class BriefDescriptor implements Runnable
 		byte[] dataYPixel=new byte[3];		
 		tile.get(s, t,dataPixel);		
 		//we will compute the brief
-		double somme=0;
+		
 		
 		for(int k=0;k<n_;k++)
 		{			
