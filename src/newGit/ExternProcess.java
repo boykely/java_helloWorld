@@ -1,8 +1,12 @@
 package newGit;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 public class ExternProcess 
 {
@@ -79,6 +83,62 @@ public class ExternProcess
 				result.put(i, j, pixel);
 			}
 		}
+	}
+	public static void LaplacianPyramid(Mat src,Mat dest)
+	{		
+		Mat temp=src.clone();		
+		Imgproc.pyrDown(temp, dest);
+		Imgproc.pyrUp(dest, dest,temp.size());
+		//temp=dest.clone();		
+		Core.subtract(src, dest, dest);
+		Core.add(dest, temp, dest);//Si on veut retrouver l'image originale Gi		
+	}
+	public static void createLaplacianPyramid(Mat dest,int n,List<Mat>pyramid)
+	{
+		int i=0;
+		Mat temp=dest.clone();
+		while(i<n)
+		{			
+			LaplacianPyramid(temp, dest);
+			pyramid.add(dest.clone());			
+			Imgproc.pyrDown(temp, temp);
+			i++;
+		}
+	}
+	public static Mat TextureMatching(Mat imRef,Mat imTar,Mat result,int n)
+	{
+		List<Mat> pyramidRef=new ArrayList<>();
+		List<Mat> pyramidTar=new ArrayList<>();
+		
+		Mat tempRef=imRef.clone();
+		Mat tempTar=imTar.clone();
+		createLaplacianPyramid(tempRef, n, pyramidRef);
+		createLaplacianPyramid(tempTar, n, pyramidTar);	
+		MatchingHistogram(imRef, imTar, imTar);
+		int i=0;
+		
+		while(i<n)
+		{
+			//result=new Mat();
+			MatchingHistogram(pyramidRef.get(i),pyramidTar.get(i), pyramidTar.get(i));
+			//result=pyramidTar.get(i).clone();
+			i++;
+		}
+		result=collapsePyramid(pyramidTar);
+		MatchingHistogram(imRef, result, result);
+		return result;
+	}
+	public static Mat collapsePyramid(List<Mat> pyramid)
+	{
+		int i=pyramid.size()-1;
+		Mat temp=new Mat();
+		while(i>0)
+		{
+			Imgproc.pyrUp(pyramid.get(i), temp,pyramid.get(i-1).size());			
+			//
+			i--;
+		}
+		return temp;
 	}
 	public static int minimum(int value,int[] cumul,Hashtable<Integer, Integer>inv_cumul)
 	{

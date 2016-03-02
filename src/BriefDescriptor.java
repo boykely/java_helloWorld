@@ -83,7 +83,8 @@ public class BriefDescriptor implements Runnable
 		//Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
 		//Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
 		//step2
-		ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
+		//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
+		newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 		newflashTilesCV[i][j]=newsourceFCV;
 		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
 		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
