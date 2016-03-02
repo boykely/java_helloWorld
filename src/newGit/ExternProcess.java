@@ -84,24 +84,25 @@ public class ExternProcess
 			}
 		}
 	}
-	public static void LaplacianPyramid(Mat src,Mat dest)
+	public static void LaplacianPyramid(Mat src,Mat dest,List<Mat> gauss)
 	{		
 		Mat temp=src.clone();		
 		Imgproc.pyrDown(temp, dest);
 		Imgproc.pyrUp(dest, dest,temp.size());
+		gauss.add(dest.clone());//we will use it to collapse-pyramid		
 		//temp=dest.clone();		
 		Core.subtract(src, dest, dest);
-		Core.add(dest, temp, dest);//Si on veut retrouver l'image originale Gi		
+		//Core.add(dest, temp, dest);//Si on veut retrouver l'image originale Gi		
 	}
-	public static void createLaplacianPyramid(Mat dest,int n,List<Mat>pyramid)
+	public static void createLaplacianPyramid(Mat dest,int n,List<Mat>pyramid,List<Mat>gauss)
 	{
 		int i=0;
 		Mat temp=dest.clone();
 		while(i<n)
 		{			
-			LaplacianPyramid(temp, dest);
+			LaplacianPyramid(temp, dest,gauss);
 			pyramid.add(dest.clone());			
-			Imgproc.pyrDown(temp, temp);
+			Imgproc.pyrDown(temp, temp);			
 			i++;
 		}
 	}
@@ -109,11 +110,12 @@ public class ExternProcess
 	{
 		List<Mat> pyramidRef=new ArrayList<>();
 		List<Mat> pyramidTar=new ArrayList<>();
-		
+		List<Mat> gaussRef=new ArrayList<>();
+		List<Mat> gaussTar=new ArrayList<>();
 		Mat tempRef=imRef.clone();
 		Mat tempTar=imTar.clone();
-		createLaplacianPyramid(tempRef, n, pyramidRef);
-		createLaplacianPyramid(tempTar, n, pyramidTar);	
+		createLaplacianPyramid(tempRef, n, pyramidRef,gaussRef);
+		createLaplacianPyramid(tempTar, n, pyramidTar,gaussTar);	
 		MatchingHistogram(imRef, imTar, imTar);
 		int i=0;
 		
@@ -123,21 +125,22 @@ public class ExternProcess
 			MatchingHistogram(pyramidRef.get(i),pyramidTar.get(i), pyramidTar.get(i));
 			//result=pyramidTar.get(i).clone();
 			i++;
-		}
-		result=collapsePyramid(pyramidTar);
+		}		
+		result=collapsePyramid(pyramidTar,gaussTar);
 		MatchingHistogram(imRef, result, result);
 		return result;
 	}
-	public static Mat collapsePyramid(List<Mat> pyramid)
+	public static Mat collapsePyramid(List<Mat> pyramid,List<Mat>gauss)
 	{
 		int i=pyramid.size()-1;
-		Mat temp=new Mat();
-		while(i>0)
+		Mat temp=new Mat();		
+		while(i>=0)
 		{
-			Imgproc.pyrUp(pyramid.get(i), temp,pyramid.get(i-1).size());			
+			//Imgproc.pyrUp(pyramid.get(i), temp,pyramid.get(i-1).size());			
+			Core.add(pyramid.get(i), gauss.get(i), temp);
 			//
 			i--;
-		}
+		}		
 		return temp;
 	}
 	public static int minimum(int value,int[] cumul,Hashtable<Integer, Integer>inv_cumul)
