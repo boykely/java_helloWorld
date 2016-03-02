@@ -402,8 +402,25 @@ public class Form extends JFrame implements BriefDescriptorListener
 		{
 			//colonne
 			for(int j=0;j<tileLenW;j++)
-			{			
-				if((i==4 && j==4)|| (i==3 && j==2) || (i==5 && j==5))
+			{	
+				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+				brief.pairwisePixel0=pairwisePixel0;
+				brief.pairwisePixel1=pairwisePixel1;
+				brief.pairwisePixel2=pairwisePixel2;
+				brief.masterB=masterB;
+				brief.masterBDict=masterBDict;
+				brief.container_ref_final=_containerNextCV;
+				brief.container_ref_init=_containerNext;
+				brief.container_ref_gradient=_containerGradient;
+				brief.container_ref_gradientF=_containerGradientF;
+				brief.newflashTilesCV=newFlashTilesCV;
+				brief.setMaster(masterTile);
+				brief.setMasterCV(masterTileFCV,masterTileGCV);
+				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
+				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+				brief.execute();
+				/*if((i==4 && j==4)|| (i==3 && j==2) || (i==5 && j==5))
 				{
 					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 					brief.pairwisePixel0=pairwisePixel0;
@@ -424,7 +441,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 					listThread[k]=new Thread(brief);
 					listThread[k].start();
 					k++;
-				}		
+				}	*/	
 								
 			}
 		}
