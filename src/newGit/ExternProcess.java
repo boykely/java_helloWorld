@@ -117,8 +117,7 @@ public class ExternProcess
 		createLaplacianPyramid(tempRef, n, pyramidRef,gaussRef);
 		createLaplacianPyramid(tempTar, n, pyramidTar,gaussTar);	
 		MatchingHistogram(imRef, imTar, imTar);
-		int i=0;
-		
+		int i=0;		
 		while(i<n)
 		{
 			//result=new Mat();

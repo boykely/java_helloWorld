@@ -65,8 +65,8 @@ public class BriefDescriptor implements Runnable
 	public void execute()
 	{
 		//step1
-				gaussianTiles(sourceGCV,5.0,4);		
-				gaussianTiles(masterTileGCV,5.0,4);
+				gaussianTiles(sourceGCV,15.0,4);		
+				//gaussianTiles(masterTileGCV,5.0,4);//we smooth it inside form.java class
 				allBriefG=brief(sourceGCV);
 				brief(masterTileGCV,true);
 				oneTileFinished(i,j);
@@ -76,8 +76,8 @@ public class BriefDescriptor implements Runnable
 				//Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
 				//Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
 				//step2
-				//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
-				newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
+				ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
+				//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 				newflashTilesCV[i][j]=newsourceFCV;
 				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
 				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
@@ -92,7 +92,7 @@ public class BriefDescriptor implements Runnable
 		pairwisePixel2=nPairPixel(n[2], 2);*/
 		//step1
 		gaussianTiles(sourceGCV,5.0,4);		
-		gaussianTiles(masterTileGCV,5.0,4);
+		//gaussianTiles(masterTileGCV,5.0,4);//we smooth it inside form.java class
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
@@ -249,7 +249,7 @@ public class BriefDescriptor implements Runnable
 				
 			}			
 		}
-		System.out.println("Tous les pixel ont été tratié");
+		System.out.println("Tous les pixel ont été tratié ("+i+","+j+")");
 		//newflashTilesCV[i][j]=newsourceFCV;
 		//System.out.println(newsourceFCV);
 		return new String[2];		

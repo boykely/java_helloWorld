@@ -387,8 +387,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		BufferedImage masterTile=flashTiles[ml][mc];
 		//we will create new matrice image to manipulate inside each thread
 		Mat masterTileFCV=convertTileToCV(masterTile);
-		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);	
+		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileOrigin.jpg");
+		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
 		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileGaussian.jpg");
 		//calcul une bonne fois pour toute masterB
 		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
 		masterBDict=new Hashtable<>();
@@ -420,7 +423,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
 				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
 				brief.execute();
-				/*if((i==4 && j==4)|| (i==3 && j==2) || (i==5 && j==5))
+				/*if((i==0 && j==0))//|| (i==3 && j==2) || (i==5 && j==5))
 				{
 					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 					brief.pairwisePixel0=pairwisePixel0;
@@ -441,7 +444,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 					listThread[k]=new Thread(brief);
 					listThread[k].start();
 					k++;
-				}	*/	
+				}*/		
 								
 			}
 		}
