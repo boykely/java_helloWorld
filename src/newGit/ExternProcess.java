@@ -166,4 +166,53 @@ public class ExternProcess
 		}
 		return inv_cumul.get(tempHash.get(temp[0]));
 	}
+	public static void regularizeSVBRDF(Mat[][] f1,Mat[][]f2,int tileLenH,int tileLenW,int hauteur)
+	{
+		//f1 et f2 doivent être initialisé avant
+		int[][] temp=new int[hauteur*hauteur][3];
+		int index=0;
+		byte[] pixel=new byte[3];
+		for(int i=0;i<tileLenH;i++)
+		{
+			//parcours tous les tiles
+			for(int j=0;j<tileLenW;j++)
+			{
+				for(int row=0;row<hauteur;row++)
+				{
+					//parcours tous les pixels du tile
+					for(int col=0;col<hauteur;col++)
+					{
+						f1[i][j].get(row, col,pixel);
+						temp[index][0]+=byteColorCVtoIntJava(pixel[0]);
+						temp[index][1]+=byteColorCVtoIntJava(pixel[1]);
+						temp[index][2]+=byteColorCVtoIntJava(pixel[2]);
+						index++;
+					}
+				}
+			}
+			index=0;
+		}
+		//on va faire l'inverse pour créer f2
+		for(int i=0;i<tileLenH;i++)
+		{
+			//parcours tous les tiles
+			for(int j=0;j<tileLenW;j++)
+			{
+				for(int row=0;row<hauteur;row++)
+				{
+					//parcours tous les pixels du tile
+					for(int col=0;col<hauteur;col++)
+					{						
+						int B=temp[index][0]/(tileLenH*tileLenW);
+						int G=temp[index][1]/(tileLenH*tileLenW);
+						int R=temp[index][2]/(tileLenH*tileLenW);
+						pixel=new byte[]{(byte)B,(byte)G,(byte)R};
+						f2[i][j].put(row, col, pixel);
+						index++;
+					}
+				}
+			}
+			index=0;
+		}
+	}
 }

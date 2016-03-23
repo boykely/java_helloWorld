@@ -27,6 +27,8 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import newGit.ExternProcess;
+
 import javax.imageio.ImageIO;
 
 
@@ -72,6 +74,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private Mat[][] newFlashTilesCV;//it will contains the reference of F1
 	private Mat[][] flashTilesCV;
 	private Mat[][] guideTilesCV;
+	private Mat[][] f1;
+	private Mat[][] f2;//it will contains the reference of F2
 	private Mat[] imageDataCV;
 	private Thread[] listThread;
 	//pour test image
@@ -307,6 +311,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
 	        guideTilesCV=new Mat[tileLenH][tileLenW];
+	        f2=new Mat[1][3];
+	        f1=new Mat[1][3];
 	        newFlashTilesCV=new Mat[tileLenH][tileLenW];	      
 			initTiles();			
 		} 
@@ -342,7 +348,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				flashTiles[i][j]=new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_3BYTE_BGR);
 				guideTiles[i][j]=new BufferedImage(tileSize,tileSize,BufferedImage.TYPE_3BYTE_BGR);
 				flashTilesCV[i][j]=new Mat(tileSize,tileSize,imageDataCV[0].type());
-				guideTilesCV[i][j]=new Mat(tileSize,tileSize,imageDataCV[0].type());
+				guideTilesCV[i][j]=new Mat(tileSize,tileSize,imageDataCV[0].type());				
 				//ligne
 				for(int s=0;s<tileSize;s++)
 				{
@@ -373,9 +379,10 @@ public class Form extends JFrame implements BriefDescriptorListener
 		}
 		System.out.println("Initialisation des tiles terminé");
 		//listThread=new Thread[tileLenH*tileLenW];
-		listThread=new Thread[3];
+		listThread=new Thread[10];
 		System.out.println("Initialisation des threads terminé");
 		System.out.println("Reflectance Sample Transport commence...");
+		//System.err.println(tileLenH+"-"+tileLenW);//12-16
 		reflectanceSampleTransport();
 	}
 	private void reflectanceSampleTransport()
@@ -384,10 +391,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		Random rd=new Random(d.getTime());
 		int ml=rd.nextInt(tileLenH);
 		int mc=rd.nextInt(tileLenW);
-		BufferedImage masterTile=flashTiles[ml][mc];
+		//System.err.println(ml+","+mc);
+		BufferedImage masterTile=flashTiles[10][9];
 		//we will create new matrice image to manipulate inside each thread
 		Mat masterTileFCV=convertTileToCV(masterTile);
-		Mat masterTileGCV=convertTileToCV(guideTiles[ml][mc]);
+		Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);
 		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileOrigin.jpg");
 		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
 		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
@@ -401,12 +409,17 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int k=0;		
 		//Pour chaque tile (i,j)
 		//ligne
-		for(int i=0;i<tileLenH;i++)
+		int z=0;
+		int testLimite=0;
+		boolean end=false;
+		for(int i=12;i<tileLenH;i++)
 		{
 			//colonne
-			for(int j=0;j<tileLenW;j++)
+			if(end)break;
+			for(int j=10;j<tileLenW;j++)
 			{	
-				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+				
+				/*BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 				brief.pairwisePixel0=pairwisePixel0;
 				brief.pairwisePixel1=pairwisePixel1;
 				brief.pairwisePixel2=pairwisePixel2;
@@ -422,8 +435,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
 				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
 				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
-				brief.execute();
-				/*if((i==0 && j==0))//|| (i==3 && j==2) || (i==5 && j==5))
+				brief.execute();*/
+				if(testLimite<10)
 				{
 					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 					brief.pairwisePixel0=pairwisePixel0;
@@ -444,10 +457,21 @@ public class Form extends JFrame implements BriefDescriptorListener
 					listThread[k]=new Thread(brief);
 					listThread[k].start();
 					k++;
-				}*/		
-								
+					testLimite++;
+				}
+				if(j==tileLenW-1)
+				{
+					end=!end;
+					break;
+				}
+				
 			}
 		}
+		//Regularize SVBRDF => it does not work yet
+		/*ExternProcess.regularizeSVBRDF(f1, f2, 1, 3, 192);
+		BriefDescriptor.saveTile(f2[0][0], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit1_0_0.jpg");
+		BriefDescriptor.saveTile(f2[0][1], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit1_3_2.jpg");
+		BriefDescriptor.saveTile(f2[0][2], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit1_4_1.jpg");*/
 	}
 	public static void showCvDataToJava(Mat m,ImageContainer container)
 	{

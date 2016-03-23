@@ -72,12 +72,14 @@ public class BriefDescriptor implements Runnable
 				oneTileFinished(i,j);
 				//Form.showTile(sourceG, container_ref_init);
 				Form.showCvDataToJava(sourceFCV, container_ref_init);
-				gaussianTiles(newsourceFCV,3.0,1);
+				//gaussianTiles(newsourceFCV,3.0,1);//commenting because testing regularize
 				//Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
 				//Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
+				//Regularization step here
+				
 				//step2
-				ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
-				//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
+				//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);//commenting because testing regularize
+				//
 				newflashTilesCV[i][j]=newsourceFCV;
 				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
 				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
@@ -91,19 +93,19 @@ public class BriefDescriptor implements Runnable
 		pairwisePixel1=nPairPixel(n[1], 1);
 		pairwisePixel2=nPairPixel(n[2], 2);*/
 		//step1
-		gaussianTiles(sourceGCV,5.0,4);		
+		gaussianTiles(sourceGCV,15.0,4);		
 		//gaussianTiles(masterTileGCV,5.0,4);//we smooth it inside form.java class
 		allBriefG=brief(sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
 		Form.showCvDataToJava(sourceFCV, container_ref_init);
-		gaussianTiles(newsourceFCV,3.0,1);
+		//gaussianTiles(newsourceFCV,3.0,1);
 		//Mat nn=new Mat(newsourceFCV.rows(),newsourceFCV.cols(),CvType.CV_8UC3);
 		//Imgproc.bilateralFilter(newsourceFCV, nn, 3, 200, 200);
 		//step2
 		//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
-		newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
+		//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 		newflashTilesCV[i][j]=newsourceFCV;
 		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
 		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
@@ -353,8 +355,9 @@ public class BriefDescriptor implements Runnable
 		}
 		catch(IOException e)
 		{
-			
+			System.err.println("Error saving file");
 		}		
 	}
+	
 
 }
