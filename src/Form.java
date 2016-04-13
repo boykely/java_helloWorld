@@ -10,9 +10,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -78,11 +82,13 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private Mat[][] f2;//it will contains the reference of F2
 	private Mat[] imageDataCV;
 	private Thread[] listThread;
+	private List<Thread> listThread2;
 	//pour test image
 	private int next=0;
 	private int previous=0;
 	private int nnn=0;
 	public static int tileProcessed=0;
+	public static int start=0;
 	public Form()
 	{		
 		this.setSize(1000, 900);
@@ -306,7 +312,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 	        height=imageData[0].getHeight();
 	        tileSize=192;
 	        tileLenW = width / tileSize;//pour un test on va retrecir
-	        tileLenH = height / tileSize;	        
+	        tileLenH = height / tileSize;	
+	        System.out.println(tileLenH+" - "+tileLenW);
 	        flashTiles=new BufferedImage[tileLenH][tileLenW];
 	        guideTiles=new BufferedImage[tileLenH][tileLenW];
 	        flashTilesCV=new Mat[tileLenH][tileLenW];
@@ -375,15 +382,99 @@ public class Form extends JFrame implements BriefDescriptorListener
 				tempG=convertTileToCV(guideTiles[i][j]);
 				flashTilesCV[i][j]=temp;
 				guideTilesCV[i][j]=tempG;
+				//this is only used for testing TextureStatisticsTransfert function. we can erase later
+				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Ref_"+i+"_"+j+".jpg");
+				//BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Tar_"+i+"_"+j+".jpg");
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
 		//listThread=new Thread[tileLenH*tileLenW];
-		listThread=new Thread[10];
+		listThread=new Thread[tileLenH*tileLenW];
+		listThread2=new ArrayList<>();
 		System.out.println("Initialisation des threads terminé");
-		System.out.println("Reflectance Sample Transport commence...");
+		//System.out.println("Reflectance Sample Transport commence...");
 		//System.err.println(tileLenH+"-"+tileLenW);//12-16
-		reflectanceSampleTransport();
+		reflectanceSampleTransport(true);
+		//reflectanceSampleTransport();
+		//textureStatisticsTransfert();
+	}
+	private void textureStatisticsTransfert()
+	{
+		//flashTilesCV contains the original source tiles image
+		//guideTilesCV contains the source tile image after step 2 => optimize image
+		System.out.println("Texture statistique transfert commence...");
+		Mat newsourceCV=new Mat(flashTilesCV[0][0].rows(),flashTilesCV[0][0].cols(),CvType.CV_8UC3);
+		for(int i=0;i<tileLenH;i++)
+		{
+			for(int j=0;j<tileLenW;j++)
+			{				
+				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 6);
+				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_step2_"+i+"_"+j+".jpg");
+				System.out.println(i+","+j+" tile traité.");
+			}
+		}
+		
+		System.out.println("Fin step 2");
+	}
+	//this is used to create a thread pool
+	private void reflectanceSampleTransport(boolean end)
+	{
+		Date d=new Date();
+		Random rd=new Random(d.getTime());
+		int ml=rd.nextInt(tileLenH);
+		int mc=rd.nextInt(tileLenW);
+		//System.err.println(ml+","+mc);
+		//BufferedImage masterTile=flashTiles[10][9];
+		BufferedImage masterTile=flashTiles[2][2];
+		//we will create new matrice image to manipulate inside each thread
+		Mat masterTileFCV=convertTileToCV(masterTile);
+		//Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);//pour les test sup
+		Mat masterTileGCV=convertTileToCV(guideTiles[2][2]);
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileOrigin.jpg");
+		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
+		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileGaussian.jpg");
+		//calcul une bonne fois pour toute masterB
+		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
+		masterBDict=new Hashtable<>();
+		BriefDescriptor.brief(masterTileGCV, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
+		//
+		showTile(masterTile,_containerSVBRDF);
+		int k=0;		
+		//Pour chaque tile (i,j)
+		//ligne
+		int z=0;
+		int testLimite=0;
+		ExecutorService executor = Executors.newFixedThreadPool(8);	;
+		for(int i=0;i<tileLenH;i++)
+		{
+			//colonne
+			for(int j=0;j<tileLenW;j++)
+			{	
+				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+				brief.pairwisePixel0=pairwisePixel0;
+				brief.pairwisePixel1=pairwisePixel1;
+				brief.pairwisePixel2=pairwisePixel2;
+				brief.masterB=masterB;
+				brief.masterBDict=masterBDict;
+				brief.container_ref_final=_containerNextCV;
+				brief.container_ref_init=_containerNext;
+				brief.container_ref_gradient=_containerGradient;
+				brief.container_ref_gradientF=_containerGradientF;
+				brief.newflashTilesCV=newFlashTilesCV;
+				brief.setMaster(masterTile);
+				brief.setMasterCV(masterTileFCV,masterTileGCV);
+				brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
+				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
+				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+	            executor.execute(brief);
+			}
+		}
+		executor.shutdown();
+		 while (!executor.isTerminated()) 
+	     {
+	     }
+		System.out.println("fin reflectance transport");
 	}
 	private void reflectanceSampleTransport()
 	{
@@ -392,10 +483,12 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int ml=rd.nextInt(tileLenH);
 		int mc=rd.nextInt(tileLenW);
 		//System.err.println(ml+","+mc);
-		BufferedImage masterTile=flashTiles[10][9];
+		//BufferedImage masterTile=flashTiles[10][9];
+		BufferedImage masterTile=flashTiles[2][2];
 		//we will create new matrice image to manipulate inside each thread
 		Mat masterTileFCV=convertTileToCV(masterTile);
-		Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);
+		//Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);//pour les test sup
+		Mat masterTileGCV=convertTileToCV(guideTiles[2][2]);
 		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileOrigin.jpg");
 		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
 		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
@@ -412,11 +505,11 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int z=0;
 		int testLimite=0;
 		boolean end=false;
-		for(int i=12;i<tileLenH;i++)
+		for(int i=2;i<tileLenH;i++)
 		{
 			//colonne
 			if(end)break;
-			for(int j=10;j<tileLenW;j++)
+			for(int j=0;j<tileLenW;j++)
 			{	
 				
 				/*BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
@@ -436,7 +529,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
 				brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
 				brief.execute();*/
-				if(testLimite<10)
+				if(testLimite<6)
 				{
 					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
 					brief.pairwisePixel0=pairwisePixel0;
@@ -454,6 +547,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 					brief.setSourceFG(flashTiles[i][j], guideTiles[i][j]);
 					brief.setSourceFGCV(convertTileToCV(flashTiles[i][j]),convertTileToCV(guideTiles[i][j]));
 					brief.AddBriefDescriptorEventListener((BriefDescriptorListener)this);
+					//don't forget to uncomment listThread as array
 					listThread[k]=new Thread(brief);
 					listThread[k].start();
 					k++;
@@ -502,5 +596,6 @@ public class Form extends JFrame implements BriefDescriptorListener
 		// TODO Auto-generated method stub
 		System.err.println("One tile a été traité:("+evt.getLigne()+"-"+evt.getColonne()+")");
 		Form.tileProcessed++;
+		Form.start--;
 	}	
 }

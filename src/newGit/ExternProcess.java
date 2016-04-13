@@ -144,14 +144,21 @@ public class ExternProcess
 	}
 	public static int minimum(int value,int[] cumul,Hashtable<Integer, Integer>inv_cumul)
 	{
+		int min=Math.abs(value-cumul[0]);
 		int[] temp=new int[256];
 		Hashtable<Integer, Integer>tempHash=new Hashtable<>();
 		for(int i=0;i<256;i++)
 		{
-			temp[i]=Math.abs(value-cumul[i]);
+			temp[i]=Math.abs(value-cumul[i]);			
 			tempHash.put(temp[i], cumul[i]);
+			if(min>=temp[i])
+			{
+				min=temp[i];
+			}
 		}		
 		int a=0;
+		//To avoid sorting like this we will find the minimum value min above
+		/*
 		for(int i=0;i<255;i++)
 		{
 			for(int j=i+1;j<256;j++)
@@ -164,7 +171,8 @@ public class ExternProcess
 				}
 			}
 		}
-		return inv_cumul.get(tempHash.get(temp[0]));
+		return inv_cumul.get(tempHash.get(temp[0]));*/
+		return inv_cumul.get(tempHash.get(min));
 	}
 	public static void regularizeSVBRDF(Mat[][] f1,Mat[][]f2,int tileLenH,int tileLenW,int hauteur)
 	{

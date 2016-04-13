@@ -227,9 +227,7 @@ public class BriefDescriptor implements Runnable
 				
 				for(int br=0;br<nbPixels;br++)
 				{
-					tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());
-										
-					
+					tempHaming=Gaussian.distanceHamming(masterB[index].getBytes(),allBriefG[br].getBytes());					
 					//System.out.println(tempHaming);
 					if(hamming>tempHaming)
 					{
