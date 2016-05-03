@@ -77,9 +77,9 @@ public class ExternProcess
 				int r=minimum(RCTar[byteColorCVtoIntJava(red)],RCRef,InvHistoCumulRRef);
 				int g=minimum(GCTar[byteColorCVtoIntJava(green)],GCRef,InvHistoCumulGRef);
 				int b=minimum(BCTar[byteColorCVtoIntJava(blue)],BCRef,InvHistoCumulBRef);		
-				pixel[0]=b>256?(byte)255:(byte)b;
-				pixel[1]=b>256?(byte)255:(byte)g;
-				pixel[2]=b>256?(byte)255:(byte)r;				
+				pixel[0]=b>256?(byte)255:b<0?0:(byte)b;
+				pixel[1]=g>256?(byte)255:g<0?0:(byte)g;
+				pixel[2]=r>256?(byte)255:r<0?0:(byte)r;				
 				result.put(i, j, pixel);
 			}
 		}

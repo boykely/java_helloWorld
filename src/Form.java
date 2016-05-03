@@ -409,7 +409,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			for(int j=0;j<tileLenW;j++)
 			{				
 				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 6);
-				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_step2_"+i+"_"+j+".jpg");
+				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\final test F lightcolor fixe\\source_step2_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}
@@ -445,7 +445,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 		//ligne
 		int z=0;
 		int testLimite=0;
-		ExecutorService executor = Executors.newFixedThreadPool(8);	;
+		ExecutorService executor = Executors.newFixedThreadPool(8);
 		for(int i=0;i<tileLenH;i++)
 		{
 			//colonne

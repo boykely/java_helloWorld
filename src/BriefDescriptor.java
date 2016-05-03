@@ -46,6 +46,7 @@ public class BriefDescriptor implements Runnable
 	private Mat sourceFCV;
 	private Mat sourceGCV;//this is the reference to current tile within F
 	private Mat newsourceFCV;//this will hold the new tile F1
+	private Mat transportMap;
 	private Mat gradient;//this will hold the gradient image of source tile
 	private Mat gradientF;
 	private int tileSize;
@@ -81,8 +82,9 @@ public class BriefDescriptor implements Runnable
 				//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);//commenting because testing regularize
 				//
 				newflashTilesCV[i][j]=newsourceFCV;
-				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
-				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
+				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
+				saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
+				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 	}
 	@Override
 	public void run() 
@@ -107,8 +109,9 @@ public class BriefDescriptor implements Runnable
 		//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
 		//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 		newflashTilesCV[i][j]=newsourceFCV;
-		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_relit_"+i+"_"+j+".jpg");
-		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_tile_"+i+"_"+j+".jpg");
+		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
+		saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
+		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 		//Form.showCvDataToJava(nn, container_ref_final);
 		//Form.showCvDataToJava(newsourceFCV, container_ref_final);		
 		//Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
@@ -147,6 +150,7 @@ public class BriefDescriptor implements Runnable
 		sourceFCV=f;
 		sourceGCV=g;
 		newsourceFCV=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
+		transportMap=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
 		gradient=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
 		gradientF=new Mat(g.rows(),g.cols(),CvType.CV_8UC3);
 	}	
@@ -241,11 +245,12 @@ public class BriefDescriptor implements Runnable
 				byte[] colorF=new byte[3];				
 				sourceFCV.get(match[0], match[1], colorF);//this is the pixel where brief best matches the master brief				
 				newsourceFCV.put(i_, j_, colorF);
+				transportMap.put(i_, j_, new byte[]{0,colorF[1],colorF[2]});//red and green channels
 				index++;
 				//reset
 				hamming=max;
 				id=0;
-				System.out.println("Pixel ("+i_+","+j_+") du master traité");
+				//System.out.println("Pixel ("+i_+","+j_+") du master traité");
 				
 			}			
 		}
