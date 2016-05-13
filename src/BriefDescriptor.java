@@ -242,10 +242,12 @@ public class BriefDescriptor implements Runnable
 				//System.out.println("le distance minimum est "+hamming);				
 				int[] match=allBriefGDict.get(id);
 				//System.out.println("Le pixel correspondant est ("+match[0]+","+match[1]+")");
-				byte[] colorF=new byte[3];				
+				byte[] colorF=new byte[3];
+				byte[] tm=new byte[3];
+				sourceGCV.get(match[0],match[1],tm);
 				sourceFCV.get(match[0], match[1], colorF);//this is the pixel where brief best matches the master brief				
 				newsourceFCV.put(i_, j_, colorF);
-				transportMap.put(i_, j_, new byte[]{0,colorF[1],colorF[2]});//red and green channels
+				transportMap.put(i_, j_, new byte[]{0,tm[1],tm[2]});//red and green channels
 				index++;
 				//reset
 				hamming=max;
