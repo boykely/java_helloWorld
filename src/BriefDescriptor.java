@@ -83,7 +83,7 @@ public class BriefDescriptor implements Runnable
 				//
 				newflashTilesCV[i][j]=newsourceFCV;
 				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
-				saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
+				//saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
 				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 	}
 	@Override
@@ -110,7 +110,7 @@ public class BriefDescriptor implements Runnable
 		//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 		newflashTilesCV[i][j]=newsourceFCV;
 		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
-		saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
+		//saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
 		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 		//Form.showCvDataToJava(nn, container_ref_final);
 		//Form.showCvDataToJava(newsourceFCV, container_ref_final);		
@@ -199,8 +199,9 @@ public class BriefDescriptor implements Runnable
 		for(int i_=0;i_<m.rows();i_++)
 		{
 			for(int j_=0;j_<m.cols();j_++)
-			{				
-				allBG[index]=brief(m, i_, j_,new int[]{96,128,32},pairwise0,pairwise1,pairwise2);
+			{		
+				//calcule du BRIEF pour un pixel (i_,j_) dans la fenêtre sont 96 ensuite 128 et enfin 32
+				allBG[index]=brief(m, i_, j_,new int[]{96,128,32},new int[]{33,17,5},pairwise0,pairwise1,pairwise2);
 				//System.err.println(allBriefG[index]);
 				allBGDict.put(index, new int[]{i_,j_});				
 				//System.out.println(allBriefG[index]);
@@ -261,17 +262,17 @@ public class BriefDescriptor implements Runnable
 		//System.out.println(newsourceFCV);
 		return new String[2];		
 	}
-	public static int[][] nPairPixel(int n,int len)
+	public static int[][] nPairPixel(int n,int window)
 	{
 		int[][] npair=new int[n][];
 		int l=0;
 		//double std=(double)window[id]/5;
-		double std=(double)len/5;
+		double std=(double)window/5;
 		Date dt=new Date();		
 		Random rd=new Random(dt.getTime());
 		while(l<n)
 		{
-			int[] res=Gaussian.Gaussian(0,std ,rd);
+			int[] res=Gaussian.Gaussian(0,std ,rd,window);
 			//(ligneX,colonneX)(ligneY,colonneY)
 			npair[l]=new int[]{res[0],res[1],res[2],res[3]};
 			l++;
@@ -283,14 +284,14 @@ public class BriefDescriptor implements Runnable
 	//Pixel (s,t) => notation (ligne,colonne)
 	public String brief(Mat tile,int s,int t)
 	{
-		return featureDescriptor(tile, s, t, n[0],pairwisePixel0)+featureDescriptor(tile, s, t, n[1],pairwisePixel1)+featureDescriptor(tile, s, t, n[2],pairwisePixel2);	
+		return featureDescriptor(tile, s, t, n[0],window[0],pairwisePixel0)+featureDescriptor(tile, s, t, n[1],window[1],pairwisePixel1)+featureDescriptor(tile, s, t, n[2],window[2],pairwisePixel2);	
 	}	
-	public static String brief(Mat tile,int s,int t,int[] len,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
+	public static String brief(Mat tile,int s,int t,int[] len,int[] windows,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
 	{
-		return featureDescriptor(tile, s, t, len[0],pairwise0)+featureDescriptor(tile, s, t, len[1],pairwise1)+featureDescriptor(tile, s, t, len[2],pairwise2);
+		return featureDescriptor(tile, s, t, len[0],windows[0],pairwise0)+featureDescriptor(tile, s, t, len[1],windows[1],pairwise1)+featureDescriptor(tile, s, t, len[2],windows[2],pairwise2);
 	}
 	
-	public static String featureDescriptor(Mat tile,int s,int t,int n_,int[][]pairsPixel)
+	public static String featureDescriptor(Mat tile,int s,int t,int n_,int window,int[][]pairsPixel)
 	{
 		StringBuilder sommeS=new StringBuilder();
 		//int[][] pairsPixel=nPairPixel(n_,id);
@@ -299,7 +300,7 @@ public class BriefDescriptor implements Runnable
 		byte[] dataYPixel=new byte[3];		
 		tile.get(s, t,dataPixel);		
 		//we will compute the brief
-		
+		int fen=window/2;
 		
 		for(int k=0;k<n_;k++)
 		{			
@@ -314,16 +315,7 @@ public class BriefDescriptor implements Runnable
 			int rcx=t+cx;
 			int rly=s+ly;
 			int rcy=t+cy;
-			if(rlx<0 || rcx<0)
-			{
-				rlx=s;
-				rcx=t;
-			}
-			if(rly<0 || rcy<0)
-			{
-				rly=s;
-				rcy=t;
-			}
+			
 			tile.get(rlx,rcx,dataXPixel);
 			tile.get(rly, rcy,dataYPixel);	
 			//compute the difference pixelwise color

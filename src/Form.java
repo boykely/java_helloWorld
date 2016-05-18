@@ -394,9 +394,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 		System.out.println("Initialisation des threads terminé");
 		//System.out.println("Reflectance Sample Transport commence...");
 		//System.err.println(tileLenH+"-"+tileLenW);//12-16
-		//reflectanceSampleTransport(true);
+		reflectanceSampleTransport(true);
 		//reflectanceSampleTransport();
-		textureStatisticsTransfert();
+		//textureStatisticsTransfert();
 	}
 	private void textureStatisticsTransfert()
 	{
@@ -430,10 +430,10 @@ public class Form extends JFrame implements BriefDescriptorListener
 		Mat masterTileFCV=convertTileToCV(masterTile);
 		//Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);//pour les test sup
 		Mat masterTileGCV=convertTileToCV(guideTiles[5][5]);
-		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileOrigin.jpg");
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tileOrigin.jpg");
 		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
-		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tile.jpg");
-		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\master_tileGaussian.jpg");
+		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tile.jpg");
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tileGaussian.jpg");
 		//calcul une bonne fois pour toute masterB
 		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
 		masterBDict=new Hashtable<>();
