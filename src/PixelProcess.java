@@ -1,7 +1,7 @@
 import java.util.Hashtable;
 
 import org.opencv.core.Mat;
-
+/*
 public class PixelProcess implements Runnable 
 {
 	public int i;
@@ -26,7 +26,7 @@ public class PixelProcess implements Runnable
 		int id=0;
 		//m.put(i_, j_, new byte[]{40,25,43});
 		//System.out.println(brief(m, i_, j_));						
-		String currentBrief=brf.brief(m, i, j);
+		String currentBrief=brf.brief( m, i, j);
 		//now we have to look for best matches brief inside allBriefG
 		for(int br=0;br<192*192;br++)
 		{
@@ -56,3 +56,4 @@ public class PixelProcess implements Runnable
 	}
 
 }
+*/

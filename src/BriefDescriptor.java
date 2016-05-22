@@ -49,6 +49,7 @@ public class BriefDescriptor implements Runnable
 	private Mat transportMap;
 	private Mat gradient;//this will hold the gradient image of source tile
 	private Mat gradientF;
+	private Mat originalImage;
 	private int tileSize;
 	private int i;
 	private int j;
@@ -68,7 +69,7 @@ public class BriefDescriptor implements Runnable
 		//step1
 				gaussianTiles(sourceGCV,15.0,4);		
 				//gaussianTiles(masterTileGCV,5.0,4);//we smooth it inside form.java class
-				allBriefG=brief(sourceGCV);
+				allBriefG=brief(originalImage,sourceGCV);
 				brief(masterTileGCV,true);
 				oneTileFinished(i,j);
 				//Form.showTile(sourceG, container_ref_init);
@@ -97,7 +98,7 @@ public class BriefDescriptor implements Runnable
 		//step1
 		gaussianTiles(sourceGCV,15.0,4);		
 		//gaussianTiles(masterTileGCV,5.0,4);//we smooth it inside form.java class
-		allBriefG=brief(sourceGCV);
+		allBriefG=brief(originalImage,sourceGCV);
 		brief(masterTileGCV,true);
 		oneTileFinished(i,j);
 		//Form.showTile(sourceG, container_ref_init);
@@ -121,7 +122,7 @@ public class BriefDescriptor implements Runnable
 		
 		
 	}
-	public BriefDescriptor(int i_,int j_,int n_,int window_,int size)
+	public BriefDescriptor(int i_,int j_,int n_,int window_,int size,Mat origin)
 	{
 		n=new int[]{96,128,32};
 		i=i_;
@@ -130,6 +131,7 @@ public class BriefDescriptor implements Runnable
 		window=new int[]{33,17,5};
 		_listeners=new ArrayList<>();
 		allBriefGDict=new Hashtable<>();
+		originalImage=origin.clone();
 	}
 	public void setMaster(BufferedImage m)
 	{
@@ -173,7 +175,7 @@ public class BriefDescriptor implements Runnable
 	{
 		_listeners.add(lst);
 	}
-	private String[] brief(Mat m)
+	private String[] brief(Mat origin,Mat m)
 	{
 		allBriefG=new String[m.cols()*m.rows()];
 		int index=0;
@@ -181,7 +183,7 @@ public class BriefDescriptor implements Runnable
 		{
 			for(int j_=0;j_<m.cols();j_++)
 			{				
-				allBriefG[index]=brief(m, i_, j_);
+				allBriefG[index]=brief(origin,m,i,j, i_, j_);
 				//System.err.println(allBriefG[index]);
 				allBriefGDict.put(index, new int[]{i_,j_});				
 				//System.out.println(allBriefG[index]);
@@ -191,7 +193,10 @@ public class BriefDescriptor implements Runnable
 		//System.out.println(index);
 		return allBriefG;
 	}
-	public static void brief(Mat m,String[] allBG,Hashtable<Object, int[]> allBGDict,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
+	/*
+	 * (i,j) représente la position du tile dans l'image initial
+	 */
+	public static void brief(Mat origin,Mat m,int i,int j,String[] allBG,Hashtable<Object, int[]> allBGDict,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
 	{
 		//allBG=new String[m.cols()*m.rows()];
 		//allBGDict=new Hashtable<>();
@@ -200,8 +205,8 @@ public class BriefDescriptor implements Runnable
 		{
 			for(int j_=0;j_<m.cols();j_++)
 			{		
-				//calcule du BRIEF pour un pixel (i_,j_) dans la fenêtre sont 96 ensuite 128 et enfin 32
-				allBG[index]=brief(m, i_, j_,new int[]{96,128,32},new int[]{33,17,5},pairwise0,pairwise1,pairwise2);
+				//calcule du BRIEF pour un pixel (i_,j_) dans la fenêtre sont 96 ensuite 128 et enfin 32 pour le tile (i,j)
+				allBG[index]=brief(origin,m, i,j,i_, j_,new int[]{96,128,32},new int[]{33,17,5},pairwise0,pairwise1,pairwise2);
 				//System.err.println(allBriefG[index]);
 				allBGDict.put(index, new int[]{i_,j_});				
 				//System.out.println(allBriefG[index]);
@@ -282,17 +287,24 @@ public class BriefDescriptor implements Runnable
 	//Here we calculate the brief descriptor at one pixel
 	//this returns a bit string
 	//Pixel (s,t) => notation (ligne,colonne)
-	public String brief(Mat tile,int s,int t)
+	public String brief(Mat origin,Mat tile,int i,int j,int s,int t)
 	{
-		return featureDescriptor(tile, s, t, n[0],window[0],pairwisePixel0)+featureDescriptor(tile, s, t, n[1],window[1],pairwisePixel1)+featureDescriptor(tile, s, t, n[2],window[2],pairwisePixel2);	
+		return featureDescriptor(origin,tile,i,j, s, t, n[0],window[0],pairwisePixel0)+featureDescriptor(origin,tile, i,j,s, t, n[1],window[1],pairwisePixel1)+featureDescriptor(origin,tile,i,j, s, t, n[2],window[2],pairwisePixel2);	
 	}	
-	public static String brief(Mat tile,int s,int t,int[] len,int[] windows,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
+	/*
+	 * tile (i,j) pixel (s,t)
+	 */
+	public static String brief(Mat origin,Mat tile,int i,int j,int s,int t,int[] len,int[] windows,int[][] pairwise0,int[][] pairwise1,int[][] pairwise2)
 	{
-		return featureDescriptor(tile, s, t, len[0],windows[0],pairwise0)+featureDescriptor(tile, s, t, len[1],windows[1],pairwise1)+featureDescriptor(tile, s, t, len[2],windows[2],pairwise2);
+		return featureDescriptor(origin,tile, i,j,s, t, len[0],windows[0],pairwise0)+featureDescriptor(origin,tile, i,j,s, t, len[1],windows[1],pairwise1)+featureDescriptor(origin,tile, i,j,s, t, len[2],windows[2],pairwise2);
 	}
-	
-	public static String featureDescriptor(Mat tile,int s,int t,int n_,int window,int[][]pairsPixel)
+	/*
+	 * tile (i,j) pixel (s,t)
+	 */
+	public static String featureDescriptor(Mat origin,Mat tile,int i,int j,int s,int t,int n_,int window,int[][]pairsPixel)
 	{
+		int rows=origin.rows()-1;
+		int cols=origin.cols()-1;
 		StringBuilder sommeS=new StringBuilder();
 		//int[][] pairsPixel=nPairPixel(n_,id);
 		byte[] dataPixel=new byte[3];
@@ -305,19 +317,29 @@ public class BriefDescriptor implements Runnable
 		for(int k=0;k<n_;k++)
 		{			
 			//pixel x
-			int lx=pairsPixel[k][0];
-			int cx=pairsPixel[k][1];
+			int xs=pairsPixel[k][0];
+			int xt=pairsPixel[k][1];
 			//pixel y
-			int ly=pairsPixel[k][2];
-			int cy=pairsPixel[k][3];
+			int ys=pairsPixel[k][2];
+			int yt=pairsPixel[k][3];
+
+			int voisinXs=s+xs;
+			int voisinXt=t+xt;
+			int voisinYs=s+ys;
+			int voisinYt=t+yt;
 			//we will check if pixel is out of bounds then we set the currentPixel (s,t)
-			int rlx=s+lx;
-			int rcx=t+cx;
-			int rly=s+ly;
-			int rcy=t+cy;
+			voisinXs=voisinXs+192*i;
+			voisinXt=voisinXt+192*j;
+			voisinYs=voisinYs+192*i;
+			voisinYt=voisinYt+192*j;
 			
-			tile.get(rlx,rcx,dataXPixel);
-			tile.get(rly, rcy,dataYPixel);	
+			//
+			voisinXs=voisinXs<0?0:voisinXs>=rows?rows:voisinXs;
+			voisinYs=voisinYs<0?0:voisinYs>=rows?rows:voisinYs;
+			voisinXt=voisinXt<0?0:voisinXt>=cols?cols:voisinXt;
+			voisinYt=voisinYt<0?0:voisinYt>=cols?cols:voisinYt;
+			origin.get(voisinXs,voisinXt,dataXPixel);
+			origin.get(voisinYs, voisinYt,dataYPixel);	
 			//compute the difference pixelwise color
 			
 			//we will compute the grey level of one pixel to determine its intensity

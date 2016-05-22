@@ -10,10 +10,10 @@ public class Gaussian
 	{		
 		//on va mettre au bord de la fenêtre si le nombre généré depasse la fenêtre
 		int fen=window/2;
-		int x0=convertDoubleToInt(rd.nextGaussian()*std+mu);x0=x0>=fen?fen:x0;
-		int y0=convertDoubleToInt(rd.nextGaussian()*std+mu);y0=y0>=fen?fen:y0;
-		int x1=convertDoubleToInt(rd.nextGaussian()*std+mu);x1=x1>=fen?fen:x1;
-		int y1=convertDoubleToInt(rd.nextGaussian()*std+mu);y1=y1>=fen?fen:y1;
+		int x0=convertDoubleToInt(rd.nextGaussian()*std+mu);x0=x0>=fen?fen:(x0<=-fen)?-fen:x0;
+		int y0=convertDoubleToInt(rd.nextGaussian()*std+mu);y0=y0>=fen?fen:(y0<=-fen)?-fen:y0;
+		int x1=convertDoubleToInt(rd.nextGaussian()*std+mu);x1=x1>=fen?fen:(x1<=-fen)?-fen:x1;
+		int y1=convertDoubleToInt(rd.nextGaussian()*std+mu);y1=y1>=fen?fen:(y1<=-fen)?-fen:y1;
 		return new int[]{x0,y0,x1,y1};
 	}
 	public static int convertDoubleToInt(double x)

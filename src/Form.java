@@ -81,6 +81,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 	private Mat[][] f1;
 	private Mat[][] f2;//it will contains the reference of F2
 	private Mat[] imageDataCV;
+	private Mat origin;
 	private Thread[] listThread;
 	private List<Thread> listThread2;
 	//pour test image
@@ -437,7 +438,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 		//calcul une bonne fois pour toute masterB
 		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
 		masterBDict=new Hashtable<>();
-		BriefDescriptor.brief(masterTileGCV, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
+		Mat guideCV=imageDataCV[1].clone();
+		BriefDescriptor.gaussianTiles(guideCV,15.0,4);
+		BriefDescriptor.brief(guideCV,masterTileGCV,5,5, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
 		//
 		showTile(masterTile,_containerSVBRDF);
 		int k=0;		
@@ -451,7 +454,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//colonne
 			for(int j=0;j<tileLenW;j++)
 			{	
-				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+				BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize,guideCV);
 				brief.pairwisePixel0=pairwisePixel0;
 				brief.pairwisePixel1=pairwisePixel1;
 				brief.pairwisePixel2=pairwisePixel2;
@@ -496,7 +499,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 		//calcul une bonne fois pour toute masterB
 		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
 		masterBDict=new Hashtable<>();
-		BriefDescriptor.brief(masterTileGCV, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
+		Mat guideCV=imageDataCV[1].clone();
+		BriefDescriptor.gaussianTiles(guideCV,15.0,4);
+		BriefDescriptor.brief(guideCV,masterTileGCV,5,5, masterB, masterBDict, pairwisePixel0, pairwisePixel1, pairwisePixel2);		
 		//
 		showTile(masterTile,_containerSVBRDF);
 		int k=0;		
@@ -531,7 +536,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				brief.execute();*/
 				if(testLimite<6)
 				{
-					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize);
+					BriefDescriptor brief=new BriefDescriptor(i,j,32,5,tileSize,guideCV);
 					brief.pairwisePixel0=pairwisePixel0;
 					brief.pairwisePixel1=pairwisePixel1;
 					brief.pairwisePixel2=pairwisePixel2;
