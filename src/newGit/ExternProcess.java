@@ -33,10 +33,13 @@ public class ExternProcess
 	{
 		int valueR=0;int valueG=0;int valueB=0;
 		for(int i=0;i<256;i++)
-		{
+		{/*
 			valueR+=R[i];RC[i]=R[i]==0?0:valueR;
 			valueG+=G[i];GC[i]=G[i]==0?0:valueG;
-			valueB+=B[i];BC[i]=B[i]==0?0:valueB;
+			valueB+=B[i];BC[i]=B[i]==0?0:valueB;*/
+			valueR+=R[i];RC[i]=valueR;
+			valueG+=G[i];GC[i]=valueG;
+			valueB+=B[i];BC[i]=valueB;
 			
 		}
 	}
@@ -77,9 +80,12 @@ public class ExternProcess
 				int r=minimum(RCTar[byteColorCVtoIntJava(red)],RCRef,InvHistoCumulRRef);
 				int g=minimum(GCTar[byteColorCVtoIntJava(green)],GCRef,InvHistoCumulGRef);
 				int b=minimum(BCTar[byteColorCVtoIntJava(blue)],BCRef,InvHistoCumulBRef);		
-				pixel[0]=b>256?127:b<0?0:(byte)b;
+				/*pixel[0]=b>256?127:b<0?0:(byte)b;
 				pixel[1]=g>256?127:g<0?0:(byte)g;
-				pixel[2]=r>256?127:r<0?0:(byte)r;				
+				pixel[2]=r>256?127:r<0?0:(byte)r;*/			
+				pixel[0]=(byte)b;
+				pixel[1]=(byte)g;
+				pixel[2]=(byte)r;
 				result.put(i, j, pixel);
 			}
 		}

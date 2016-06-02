@@ -386,6 +386,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				//this is only used for testing TextureStatisticsTransfert function. we can erase later
 				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Ref_"+i+"_"+j+".jpg");
 				//BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Tar_"+i+"_"+j+".jpg");
+				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\optimize4\\source_tile_"+i+"_"+j+".jpg");
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
@@ -395,9 +396,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 		System.out.println("Initialisation des threads terminé");
 		//System.out.println("Reflectance Sample Transport commence...");
 		//System.err.println(tileLenH+"-"+tileLenW);//12-16
-		reflectanceSampleTransport(true);
+		//reflectanceSampleTransport(true);
 		//reflectanceSampleTransport();
-		//textureStatisticsTransfert();
+		textureStatisticsTransfert();
 	}
 	private void textureStatisticsTransfert()
 	{
@@ -410,7 +411,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			for(int j=0;j<tileLenW;j++)
 			{				
 				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 6);
-				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_step2_"+i+"_"+j+".jpg");
+				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\TT\\TF_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}
