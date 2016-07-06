@@ -410,8 +410,8 @@ public class Form extends JFrame implements BriefDescriptorListener
 		{
 			for(int j=0;j<tileLenW;j++)
 			{				
-				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 6);
-				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\TT\\TF_"+i+"_"+j+".jpg");
+				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 5);
+				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\TT\\TF_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}

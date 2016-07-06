@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.simple.SimpleMatrix;
+import org.ejml.simple.SimpleSVD;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.video.DenseOpticalFlow;
 
 public class ExternProcess 
 {
@@ -120,6 +124,40 @@ public class ExternProcess
 		List<Mat> gaussTar=new ArrayList<>();
 		Mat tempRef=imRef.clone();
 		Mat tempTar=imTar.clone();
+		MatchingHistogram(imRef, imTar, imTar);//on met le résultat dans imTar
+		createLaplacianPyramid(tempRef, n, pyramidRef,gaussRef);
+		//createLaplacianPyramid(tempTar, n, pyramidTar,gaussTar);	
+		//MatchingHistogram(imRef, imTar, imTar);
+		int i=0;		
+		while(i<n)
+		{
+			createLaplacianPyramid(tempTar, n, pyramidTar,gaussTar);
+			//result=new Mat();
+			for(int j=0;j<pyramidTar.size();j++)
+			{
+				//System.out.println(i+"//"+j);
+				MatchingHistogram(pyramidRef.get(j),pyramidTar.get(j), pyramidTar.get(j));
+			}
+			result=collapsePyramid(pyramidTar,gaussTar);
+			MatchingHistogram(imRef, result, result);
+			pyramidTar.clear();
+			gaussTar.clear();
+			tempTar=result.clone();
+			//MatchingHistogram(pyramidRef.get(i),pyramidTar.get(i), pyramidTar.get(i));
+			//result=pyramidTar.get(i).clone();
+			i++;
+		}		
+		//result=collapsePyramid(pyramidTar,gaussTar);
+		//MatchingHistogram(imRef, result, result);
+		return result;
+		/*
+		 * Version taloha 28 juin 2016
+		List<Mat> pyramidRef=new ArrayList<>();
+		List<Mat> pyramidTar=new ArrayList<>();
+		List<Mat> gaussRef=new ArrayList<>();
+		List<Mat> gaussTar=new ArrayList<>();
+		Mat tempRef=imRef.clone();
+		Mat tempTar=imTar.clone();
 		createLaplacianPyramid(tempRef, n, pyramidRef,gaussRef);
 		createLaplacianPyramid(tempTar, n, pyramidTar,gaussTar);	
 		MatchingHistogram(imRef, imTar, imTar);
@@ -134,6 +172,7 @@ public class ExternProcess
 		result=collapsePyramid(pyramidTar,gaussTar);
 		MatchingHistogram(imRef, result, result);
 		return result;
+		*/
 	}
 	public static Mat collapsePyramid(List<Mat> pyramid,List<Mat>gauss)
 	{
@@ -228,5 +267,65 @@ public class ExternProcess
 			}
 			index=0;
 		}
+	}
+	public static double[][] MeanRGBChannel(Mat ImRef,Mat ImTar)
+	{
+		double[][] mean=new double[2][3];
+		byte[] ref=new byte[3];
+		byte[] tar=new byte[3];
+		int pixels=ImRef.rows()*ImRef.cols();
+		int[][] total=new int[2][3]; 
+		for(int i=0;i<ImRef.rows();i++)
+		{
+			for(int j=0;j<ImRef.cols();j++)
+			{
+				ImRef.get(i, j,ref);
+				ImTar.get(i, j,tar);
+				total[0][0]+=byteColorCVtoIntJava(ref[2]);total[0][1]+=byteColorCVtoIntJava(ref[1]);total[0][2]+=byteColorCVtoIntJava(ref[0]);
+				total[1][0]+=byteColorCVtoIntJava(tar[2]);total[1][1]+=byteColorCVtoIntJava(tar[1]);total[1][2]+=byteColorCVtoIntJava(tar[0]);
+			}
+		}
+		mean[0][0]=((double)total[0][0])/pixels;mean[0][1]=((double)total[0][1])/pixels;mean[0][2]=((double)total[0][2])/pixels;
+		mean[1][0]=((double)total[1][0])/pixels;mean[1][1]=((double)total[1][1])/pixels;mean[1][2]=((double)total[1][2])/pixels;
+		return mean;
+	}
+	public static SimpleMatrix[] computeA(int pixels,Mat ImRef,Mat ImTar)
+	{
+		double[][] meanRGB=MeanRGBChannel(ImRef,ImTar);
+		DenseMatrix64F[] A=new DenseMatrix64F[2];
+		A[0]=new DenseMatrix64F(3, pixels);
+		A[1]=new DenseMatrix64F(3, pixels);
+		int k=0;
+		for(int i=0;i<ImRef.rows();i++)
+		{
+			for(int j=0;j<ImRef.cols();j++)
+			{
+				byte[] rgb=new byte[3];
+				ImRef.get(i, j, rgb);
+				double r=byteColorCVtoIntJava(rgb[2])-meanRGB[0][0];
+				double g=byteColorCVtoIntJava(rgb[1])-meanRGB[0][1];
+				double b=byteColorCVtoIntJava(rgb[0])-meanRGB[0][2];
+				A[0].add(0, k, r);A[0].add(1, k, g);A[0].add(2, k, b);
+				ImTar.get(i, j,rgb);
+				r=byteColorCVtoIntJava(rgb[2])-meanRGB[1][0];
+				g=byteColorCVtoIntJava(rgb[1])-meanRGB[1][1];
+				b=byteColorCVtoIntJava(rgb[0])-meanRGB[1][2];
+				A[1].add(0, k, r);A[1].add(1, k, g);A[1].add(2, k, b);
+				k++;
+			}
+		}
+		SimpleMatrix[] res=new SimpleMatrix[2];
+		res[0]=new SimpleMatrix(A[0]);
+		res[1]=new SimpleMatrix(A[1]);
+		return res;
+	}
+	public static SimpleMatrix[] computeC(int pixels,SimpleMatrix[] A)
+	{
+		SimpleMatrix[] C=new SimpleMatrix[2];
+		C[0]=A[0].mult(A[0].transpose());
+		C[1]=A[1].mult(A[1].transpose());
+		C[0].divide(pixels);
+		SimpleSVD<SimpleMatrix> svd=C[0].svd();
+		return C;
 	}
 }
