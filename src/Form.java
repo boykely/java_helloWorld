@@ -424,10 +424,10 @@ public class Form extends JFrame implements BriefDescriptorListener
 				Mat tarU=guideTilesCV[i][j].clone();
 				refU.convertTo(refU, CvType.CV_8UC3);
 				tarU.convertTo(tarU, CvType.CV_8UC3);
-				ExternProcess.TextureMatching(refU, tarU, result);
+				result=ExternProcess.TextureMatching(refU, tarU, result);
 				result.convertTo(result, CvType.CV_64FC3);
 				Mat res=ExternProcess.PCA2RGBColor(result, Pt, meanRGB);
-				BriefDescriptor.saveTile(res, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\TT\\TF_"+i+"_"+j+".jpg");
+				ExternProcess.saveTile(res, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\TT\\TF_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}

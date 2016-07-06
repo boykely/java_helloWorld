@@ -1,8 +1,14 @@
 package newGit;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.simple.SimpleMatrix;
@@ -15,6 +21,27 @@ import org.opencv.video.DenseOpticalFlow;
 
 public class ExternProcess 
 {
+	public static void saveTile(Mat m,String path)
+	{
+		try
+		{				
+			int type=BufferedImage.TYPE_3BYTE_BGR;
+			int bufferSize=m.channels()*m.cols()*m.rows();
+			byte[] data=new byte[bufferSize];
+			Mat mm=new Mat(m.rows(),m.cols(),CvType.CV_8UC3);
+			m.convertTo(mm, CvType.CV_8UC3);
+			mm.get(0, 0, data);
+			BufferedImage image=new BufferedImage(m.cols(), m.rows(), type);
+			final byte[] containerPixels=((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+			System.arraycopy(data, 0, containerPixels, 0, bufferSize);		
+			//save image		
+			ImageIO.write(image, "jpg", new File(path));			
+		}
+		catch(IOException e)
+		{
+			System.err.println("Error saving file");
+		}		
+	}
 	public static void HistogrammeRGB(Mat m,int[] R,int[] G,int[] B)
 	{
 		byte[] col=new byte[3];
@@ -140,8 +167,8 @@ public class ExternProcess
 		}
 		mean[0][0]=((double)total[0][0])/pixels;mean[0][1]=((double)total[0][1])/pixels;mean[0][2]=((double)total[0][2])/pixels;
 		mean[1][0]=((double)total[1][0])/pixels;mean[1][1]=((double)total[1][1])/pixels;mean[1][2]=((double)total[1][2])/pixels;
-		System.out.println(mean[0][0]+"/"+mean[0][1]+"/"+mean[0][2]);
-		System.out.println(mean[1][0]+"/"+mean[1][1]+"/"+mean[1][2]);
+		//System.out.println(mean[0][0]+"/"+mean[0][1]+"/"+mean[0][2]);
+		//System.out.println(mean[1][0]+"/"+mean[1][1]+"/"+mean[1][2]);
 		return mean;
 	}
 	public static SimpleMatrix computeA(int pixels,Mat ImRef,double[][] meanRGB)
@@ -259,7 +286,7 @@ public class ExternProcess
 				MatchingHistogram(pyramidRef.get(j),pyramidTar.get(j), pyramidTar.get(j));
 			}
 			result=collapsePyramid(pyramidTar,gaussTar);
-			System.out.println(result);
+			//System.out.println(result);
 			MatchingHistogram(imRef, result, result);
 			pyramidTar.clear();
 			gaussTar.clear();
