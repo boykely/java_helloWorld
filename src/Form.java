@@ -25,6 +25,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.ejml.simple.SimpleMatrix;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -410,8 +411,23 @@ public class Form extends JFrame implements BriefDescriptorListener
 		{
 			for(int j=0;j<tileLenW;j++)
 			{				
-				ExternProcess.TextureMatching(flashTilesCV[i][j], guideTilesCV[i][j], guideTilesCV[i][j], 5);
-				BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\TT\\TF_"+i+"_"+j+".jpg");
+				Mat result=new Mat();
+				int pixels=flashTilesCV[0][0].cols()*flashTilesCV[0][0].rows();
+				double[][] meanRGB=ExternProcess.MeanRGBChannel(flashTilesCV[i][j],guideTilesCV[i][j]);
+				SimpleMatrix A=ExternProcess.computeA(pixels,flashTilesCV[i][j],meanRGB);
+				SimpleMatrix C=ExternProcess.computeC(pixels,A);
+				SimpleMatrix P=ExternProcess.computeP(C);
+				SimpleMatrix Pt=ExternProcess.computePt(C);
+				flashTilesCV[i][j].convertTo(flashTilesCV[i][j], CvType.CV_64FC3);
+				guideTilesCV[i][j].convertTo(guideTilesCV[i][j], CvType.CV_64FC3);
+				Mat refU=ExternProcess.RGB2PCAColor(flashTilesCV[i][j], Pt.transpose(), meanRGB[0]);
+				Mat tarU=guideTilesCV[i][j].clone();
+				refU.convertTo(refU, CvType.CV_8UC3);
+				tarU.convertTo(tarU, CvType.CV_8UC3);
+				ExternProcess.TextureMatching(refU, tarU, result);
+				result.convertTo(result, CvType.CV_64FC3);
+				Mat res=ExternProcess.PCA2RGBColor(result, Pt, meanRGB);
+				BriefDescriptor.saveTile(res, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\Final\\TT\\TF_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}

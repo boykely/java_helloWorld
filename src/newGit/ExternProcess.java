@@ -8,6 +8,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.simple.SimpleMatrix;
 import org.ejml.simple.SimpleSVD;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.DenseOpticalFlow;
@@ -116,8 +117,160 @@ public class ExternProcess
 			i++;
 		}
 	}
+	public static double[][] MeanRGBChannel(Mat ImRef,Mat ImTar)
+	{
+		/*
+		 *  0 => image ref
+		 *  1 => image tar
+		 */
+		double[][] mean=new double[2][3];
+		byte[] ref=new byte[3];
+		byte[] tar=new byte[3];
+		int pixels=ImRef.rows()*ImRef.cols();
+		int[][] total=new int[2][3]; 
+		for(int i=0;i<ImRef.rows();i++)
+		{
+			for(int j=0;j<ImRef.cols();j++)
+			{
+				ImRef.get(i, j,ref);
+				ImTar.get(i, j,tar);
+				total[0][0]+=byteColorCVtoIntJava(ref[2]);total[0][1]+=byteColorCVtoIntJava(ref[1]);total[0][2]+=byteColorCVtoIntJava(ref[0]);
+				total[1][0]+=byteColorCVtoIntJava(tar[2]);total[1][1]+=byteColorCVtoIntJava(tar[1]);total[1][2]+=byteColorCVtoIntJava(tar[0]);
+			}
+		}
+		mean[0][0]=((double)total[0][0])/pixels;mean[0][1]=((double)total[0][1])/pixels;mean[0][2]=((double)total[0][2])/pixels;
+		mean[1][0]=((double)total[1][0])/pixels;mean[1][1]=((double)total[1][1])/pixels;mean[1][2]=((double)total[1][2])/pixels;
+		System.out.println(mean[0][0]+"/"+mean[0][1]+"/"+mean[0][2]);
+		System.out.println(mean[1][0]+"/"+mean[1][1]+"/"+mean[1][2]);
+		return mean;
+	}
+	public static SimpleMatrix computeA(int pixels,Mat ImRef,double[][] meanRGB)
+	{
+		DenseMatrix64F A=new DenseMatrix64F(3,pixels);
+		int k=0;
+		for(int i=0;i<ImRef.rows();i++)
+		{
+			for(int j=0;j<ImRef.cols();j++)
+			{
+				byte[] bgr=new byte[3];
+				ImRef.get(i, j, bgr);
+				double r=byteColorCVtoIntJava(bgr[2])-meanRGB[0][0];
+				double g=byteColorCVtoIntJava(bgr[1])-meanRGB[0][1];
+				double b=byteColorCVtoIntJava(bgr[0])-meanRGB[0][2];
+				A.add(0, k, Math.abs(r));A.add(1, k, Math.abs(g));A.add(2, k, Math.abs(b));
+				k++;
+			}
+		}
+		return new SimpleMatrix(A);
+	}
+	public static SimpleMatrix computeC(int pixels,SimpleMatrix A) 
+	{
+		return A.mult(A.transpose()).divide(pixels-1);// from IPOL avec division 
+		//return A.mult(A.transpose());//from Original sans division
+	}
+	public static SimpleMatrix computeP(SimpleMatrix C)
+	{
+		return C.svd().getU();
+	}
+	public static SimpleMatrix computePt(SimpleMatrix C)
+	{
+		return C.svd().getV();
+	}
+	public static Mat RGB2PCAColor(Mat source,SimpleMatrix Pt,double[] mean)
+	{
+		Mat result=new Mat(source.rows(),source.cols(),CvType.CV_32FC3);
+		double[] pixel=new double[3];
+		for(int i=0;i<source.rows();i++)
+		{
+			for(int j=0;j<source.cols();j++)
+			{
+				source.get(i, j, pixel);
+				double r=pixel[2]-mean[0];
+				double g=pixel[1]-mean[1];
+				double b=pixel[0]-mean[2];
+				SimpleMatrix rgb=new SimpleMatrix(new double[][]{
+					{r},
+					{g},
+					{b}
+				});
+				SimpleMatrix pca=Pt.mult(rgb);
+				r=pca.get(0, 0);r=r<0?Math.abs(r):r;
+				g=pca.get(1, 0);g=g<0?Math.abs(g):g;
+				b=pca.get(2, 0);b=b<0?Math.abs(b):b;
+				result.put(i, j, new double[]{b,g,r});
+			}
+		}
+		return result;
+	}
+	public static Mat PCA2RGBColor(Mat source,SimpleMatrix P,double[][] mean)
+	{
+		Mat result=new Mat(source.rows(),source.cols(),CvType.CV_32FC3);
+		SimpleMatrix m=new SimpleMatrix(new double[][]{
+			{mean[0][0]},
+			{mean[0][1]},
+			{mean[0][2]}	
+		});
+		double[] bgr=new double[3];
+		for(int i=0;i<source.rows();i++)
+		{
+			for(int j=0;j<source.cols();j++)
+			{
+				source.get(i, j,bgr);
+				SimpleMatrix pca=new SimpleMatrix(new double[][]{
+					{bgr[2]},
+					{bgr[1]},
+					{bgr[0]}
+				});
+				SimpleMatrix rgb=(P.mult(pca));
+				double r=rgb.get(0,0)+mean[0][0];r=r<0?Math.abs(r):r;
+				double g=rgb.get(1,0)+mean[0][1];g=g<0?Math.abs(g):g;
+				double b=rgb.get(2, 0)+mean[0][2];b=b<0?Math.abs(b):b;
+				//System.out.println(r+"-"+g+"-"+b);
+				result.put(i, j, new double[]{
+						b,
+						g,
+						r
+				});
+			}
+		}
+		return result;
+	}
+	public static Mat TextureMatching(Mat imRef,Mat imTar,Mat result)
+	{
+		/*
+		 * Correction color space from IPOL
+		 */
+		List<Mat> pyramidRef=new ArrayList<>();
+		List<Mat> pyramidTar=new ArrayList<>();
+		List<Mat> gaussRef=new ArrayList<>();
+		List<Mat> gaussTar=new ArrayList<>();
+		Mat tempRef=imRef.clone();
+		Mat tempTar=imTar.clone();
+		MatchingHistogram(imRef, imTar, imTar);//on met le résultat dans imTar
+		createLaplacianPyramid(tempRef, 5, pyramidRef,gaussRef);
+		int i=0;		
+		while(i<5)
+		{
+			createLaplacianPyramid(tempTar, 5, pyramidTar,gaussTar);
+			//result=new Mat();
+			for(int j=0;j<pyramidTar.size();j++)
+			{
+				//System.out.println(i+"//"+j);
+				MatchingHistogram(pyramidRef.get(j),pyramidTar.get(j), pyramidTar.get(j));
+			}
+			result=collapsePyramid(pyramidTar,gaussTar);
+			System.out.println(result);
+			MatchingHistogram(imRef, result, result);
+			pyramidTar.clear();
+			gaussTar.clear();
+			tempTar=result.clone();
+			i++;
+		}		
+		return result;
+	}
 	public static Mat TextureMatching(Mat imRef,Mat imTar,Mat result,int n)
 	{
+		//version stable
 		List<Mat> pyramidRef=new ArrayList<>();
 		List<Mat> pyramidTar=new ArrayList<>();
 		List<Mat> gaussRef=new ArrayList<>();
@@ -267,65 +420,5 @@ public class ExternProcess
 			}
 			index=0;
 		}
-	}
-	public static double[][] MeanRGBChannel(Mat ImRef,Mat ImTar)
-	{
-		double[][] mean=new double[2][3];
-		byte[] ref=new byte[3];
-		byte[] tar=new byte[3];
-		int pixels=ImRef.rows()*ImRef.cols();
-		int[][] total=new int[2][3]; 
-		for(int i=0;i<ImRef.rows();i++)
-		{
-			for(int j=0;j<ImRef.cols();j++)
-			{
-				ImRef.get(i, j,ref);
-				ImTar.get(i, j,tar);
-				total[0][0]+=byteColorCVtoIntJava(ref[2]);total[0][1]+=byteColorCVtoIntJava(ref[1]);total[0][2]+=byteColorCVtoIntJava(ref[0]);
-				total[1][0]+=byteColorCVtoIntJava(tar[2]);total[1][1]+=byteColorCVtoIntJava(tar[1]);total[1][2]+=byteColorCVtoIntJava(tar[0]);
-			}
-		}
-		mean[0][0]=((double)total[0][0])/pixels;mean[0][1]=((double)total[0][1])/pixels;mean[0][2]=((double)total[0][2])/pixels;
-		mean[1][0]=((double)total[1][0])/pixels;mean[1][1]=((double)total[1][1])/pixels;mean[1][2]=((double)total[1][2])/pixels;
-		return mean;
-	}
-	public static SimpleMatrix[] computeA(int pixels,Mat ImRef,Mat ImTar)
-	{
-		double[][] meanRGB=MeanRGBChannel(ImRef,ImTar);
-		DenseMatrix64F[] A=new DenseMatrix64F[2];
-		A[0]=new DenseMatrix64F(3, pixels);
-		A[1]=new DenseMatrix64F(3, pixels);
-		int k=0;
-		for(int i=0;i<ImRef.rows();i++)
-		{
-			for(int j=0;j<ImRef.cols();j++)
-			{
-				byte[] rgb=new byte[3];
-				ImRef.get(i, j, rgb);
-				double r=byteColorCVtoIntJava(rgb[2])-meanRGB[0][0];
-				double g=byteColorCVtoIntJava(rgb[1])-meanRGB[0][1];
-				double b=byteColorCVtoIntJava(rgb[0])-meanRGB[0][2];
-				A[0].add(0, k, r);A[0].add(1, k, g);A[0].add(2, k, b);
-				ImTar.get(i, j,rgb);
-				r=byteColorCVtoIntJava(rgb[2])-meanRGB[1][0];
-				g=byteColorCVtoIntJava(rgb[1])-meanRGB[1][1];
-				b=byteColorCVtoIntJava(rgb[0])-meanRGB[1][2];
-				A[1].add(0, k, r);A[1].add(1, k, g);A[1].add(2, k, b);
-				k++;
-			}
-		}
-		SimpleMatrix[] res=new SimpleMatrix[2];
-		res[0]=new SimpleMatrix(A[0]);
-		res[1]=new SimpleMatrix(A[1]);
-		return res;
-	}
-	public static SimpleMatrix[] computeC(int pixels,SimpleMatrix[] A)
-	{
-		SimpleMatrix[] C=new SimpleMatrix[2];
-		C[0]=A[0].mult(A[0].transpose());
-		C[1]=A[1].mult(A[1].transpose());
-		C[0].divide(pixels);
-		SimpleSVD<SimpleMatrix> svd=C[0].svd();
-		return C;
 	}
 }
