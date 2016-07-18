@@ -312,7 +312,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 			//init image information
 	        width=imageData[0].getWidth();
 	        height=imageData[0].getHeight();
-	        tileSize=192;
+	        tileSize=384;
 	        tileLenW = width / tileSize;//pour un test on va retrecir
 	        tileLenH = height / tileSize;	
 	        System.out.println(tileLenH+" - "+tileLenW);
@@ -387,7 +387,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				//this is only used for testing TextureStatisticsTransfert function. we can erase later
 				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Ref_"+i+"_"+j+".jpg");
 				//BriefDescriptor.saveTile(guideTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\source_Tar_"+i+"_"+j+".jpg");
-				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\optimize4\\source_tile_"+i+"_"+j+".jpg");
+				//BriefDescriptor.saveTile(flashTilesCV[i][j], "C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 			}
 		}
 		System.out.println("Initialisation des tiles terminé");
@@ -397,9 +397,9 @@ public class Form extends JFrame implements BriefDescriptorListener
 		System.out.println("Initialisation des threads terminé");
 		//System.out.println("Reflectance Sample Transport commence...");
 		//System.err.println(tileLenH+"-"+tileLenW);//12-16
-		//reflectanceSampleTransport(true);
+		reflectanceSampleTransport(true);
 		//reflectanceSampleTransport();
-		textureStatisticsTransfert();
+		//textureStatisticsTransfert();
 	}
 	private void textureStatisticsTransfert()
 	{
@@ -427,7 +427,7 @@ public class Form extends JFrame implements BriefDescriptorListener
 				result=ExternProcess.TextureMatching(refU, tarU, result);
 				result.convertTo(result, CvType.CV_64FC3);
 				Mat res=ExternProcess.PCA2RGBColor(result, Pt, meanRGB);
-				ExternProcess.saveTile(res, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\TT\\TF_"+i+"_"+j+".jpg");
+				ExternProcess.saveTile(res, "C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 				System.out.println(i+","+j+" tile traité.");
 			}
 		}
@@ -443,15 +443,15 @@ public class Form extends JFrame implements BriefDescriptorListener
 		int mc=rd.nextInt(tileLenW);
 		//System.err.println(ml+","+mc);
 		//BufferedImage masterTile=flashTiles[10][9];
-		BufferedImage masterTile=flashTiles[5][5];
+		BufferedImage masterTile=flashTiles[1][3];
 		//we will create new matrice image to manipulate inside each thread
 		Mat masterTileFCV=convertTileToCV(masterTile);
 		//Mat masterTileGCV=convertTileToCV(guideTiles[10][9]);//pour les test sup
-		Mat masterTileGCV=convertTileToCV(guideTiles[5][5]);
-		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tileOrigin.jpg");
+		Mat masterTileGCV=convertTileToCV(guideTiles[1][3]);
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\master_tileOrigin.jpg");
 		BriefDescriptor.gaussianTiles(masterTileGCV,15.0,4);
-		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tile.jpg");
-		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\master_tileGaussian.jpg");
+		BriefDescriptor.saveTile(masterTileFCV, "C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\master_tile.jpg");
+		BriefDescriptor.saveTile(masterTileGCV, "C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\master_tileGaussian.jpg");
 		//calcul une bonne fois pour toute masterB
 		masterB=new String[masterTileGCV.cols()*masterTileGCV.rows()];
 		masterBDict=new Hashtable<>();

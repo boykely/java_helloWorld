@@ -83,9 +83,9 @@ public class BriefDescriptor implements Runnable
 				//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);//commenting because testing regularize
 				//
 				newflashTilesCV[i][j]=newsourceFCV;
-				saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
+				saveTile(newsourceFCV,"C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
 				//saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
-				saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
+				saveTile(sourceFCV,"C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 	}
 	@Override
 	public void run() 
@@ -110,9 +110,9 @@ public class BriefDescriptor implements Runnable
 		//ExternProcess.MatchingHistogram(sourceFCV, newsourceFCV, newsourceFCV);
 		//newsourceFCV=ExternProcess.TextureMatching(sourceFCV, newsourceFCV, newsourceFCV,6);
 		newflashTilesCV[i][j]=newsourceFCV;
-		saveTile(newsourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
+		saveTile(newsourceFCV,"C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_relit_"+i+"_"+j+".jpg");
 		//saveTile(transportMap,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\transportMap_"+i+"_"+j+".jpg");
-		saveTile(sourceFCV,"C:\\Users\\ralambomahay1\\Downloads\\Java_workspace\\newGit\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
+		saveTile(sourceFCV,"C:\\Users\\serra-felip1\\Downloads\\newGit\\java_helloWorld\\Data\\SampleTransportReflectance\\source_tile_"+i+"_"+j+".jpg");
 		//Form.showCvDataToJava(nn, container_ref_final);
 		//Form.showCvDataToJava(newsourceFCV, container_ref_final);		
 		//Imgproc.Sobel(newsourceFCV, gradient, sourceFCV.depth(), 0, 1);
@@ -328,10 +328,10 @@ public class BriefDescriptor implements Runnable
 			int voisinYs=s+ys;
 			int voisinYt=t+yt;
 			//we will check if pixel is out of bounds then we set the currentPixel (s,t)
-			voisinXs=voisinXs+192*i;
-			voisinXt=voisinXt+192*j;
-			voisinYs=voisinYs+192*i;
-			voisinYt=voisinYt+192*j;
+			voisinXs=voisinXs+384*i;
+			voisinXt=voisinXt+384*j;
+			voisinYs=voisinYs+384*i;
+			voisinYt=voisinYt+384*j;
 			
 			//
 			voisinXs=voisinXs<0?0:voisinXs>=rows?rows:voisinXs;
